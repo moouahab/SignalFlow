@@ -13,7 +13,12 @@ from typing import TYPE_CHECKING, Any, cast
 
 from signalflow.config.loader.errors import ConfigError
 
-from .config import load_run_configuration
+from .config import RunConfiguration, load_run_configuration
+from .contracts import ExecutionContext, TrainingReport, TrainingSpec
+from .validation import validate_training_spec
+from signalflow.config.loader import LoadedConfiguration
+from signalflow.config.loader.paths import resolve_path
+from signalflow.tools import ToolDeclaration, ToolRegistry
 from .errors import PipelineError
 from .registry import create_registry
 from signalflow.monitoring import NullInstrumentation
@@ -97,6 +102,46 @@ def run_training(
     started_at = time.perf_counter()
     registry = create_registry()
     configuration = load_run_configuration(config_dir, registry=registry, training_override=training_override)
+    return _run_configuration(configuration, output_dir, registry, started_at)
+
+
+def run_training_spec(spec: TrainingSpec, context: ExecutionContext) -> TrainingReport:
+    """Entraîner sans YAML à partir d'une spécification et de chemins de confiance.
+
+    Revalide la valeur à l'entrée ; un CSV exige dataset_root et reste confiné à
+    cette racine. Réutilise exactement le cycle de tracking/monitoring de la CLI.
+    Lève ConfigError/PipelineError ou KeyboardInterrupt comme run_training.
+    Écrit modèle, rapports et MLflow ; aucune configuration YAML temporaire.
+    """
+    started_at = time.perf_counter()
+    if not isinstance(spec, TrainingSpec) or not isinstance(context, ExecutionContext):
+        raise PipelineError("TrainingSpec et ExecutionContext requis")
+    data = validate_training_spec(spec.to_dict()).to_dict()
+    source = data["dataset"]["source"]
+    dataset_path = None
+    if source["type"] == "csv":
+        if context.dataset_root is None:
+            raise PipelineError("dataset_root est requis pour un dataset CSV")
+        dataset_path = resolve_path(source["path"], base_dir=context.dataset_root)
+    declarations = [ToolDeclaration("training", "scikit-learn", True),
+                    ToolDeclaration("experiment_tracking", "mlflow", True)]
+    if data.get("monitoring") is not None:
+        declarations.append(ToolDeclaration("metrics", "local", True))
+    configuration = RunConfiguration(
+        base=Path(context.dataset_root or context.output_dir),
+        loaded=LoadedConfiguration({"origin": "python"}, tuple(declarations)),
+        training=data["training"], dataset=data["dataset"], tracking=data["tracking"],
+        sources={name: "memory" for name in data}, dataset_path=dataset_path,
+        monitoring=data.get("monitoring"),
+    )
+    return TrainingReport.from_dict(_run_configuration(
+        configuration, context.output_dir, create_registry(), started_at,
+    ))
+
+
+def _run_configuration(configuration: RunConfiguration, output_dir: str | Path,
+                       registry: ToolRegistry, started_at: float) -> dict[str, Any]:
+    """Exécuter une configuration résolue avec un cycle de vie commun aux deux façades."""
     monitor: LocalMonitor | None = None
     observation = None
     output = Path(output_dir).expanduser().resolve()

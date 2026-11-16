@@ -285,3 +285,9 @@ Alloy assurent les échanges réseau hors du processus ML. Le registre génériq
 change pas et les interfaces MLflow restent conservées. Voir les contrats de
 configuration, métriques et reprise dans [le guide de la stack](observability_stack.md).
 Les erreurs de publication sont diagnostiquées sans annuler un entraînement valide.
+
+## Entrée par objets Python (phase 2)
+
+`run_training_spec` complète la façade YAML, avec un contexte de chemins explicite,
+un rapport typé et le même cycle MLflow/monitoring. Les contrats, exceptions,
+limites et preuves de parité sont décrits dans [l’API Python](phase2_python_api.md).

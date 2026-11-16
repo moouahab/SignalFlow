@@ -79,6 +79,18 @@ Elles comparent C=1 et C=0.05 ; comparer la validation, réserver le test au bil
 final. `python -m signalflow` est équivalent à `signalflow`.
 Le JSON de résultat est écrit sur stdout, les diagnostics sur stderr.
 
+## Entraînement depuis des objets Python
+
+Une spécification en mémoire peut désormais être validée puis exécutée sans fichier YAML :
+
+```bash
+python examples/train_from_objects.py --output-dir outputs/python-demo
+```
+
+`validate_training_spec` produit une valeur indépendante des dictionnaires d’entrée ;
+`run_training_spec(spec, ExecutionContext(...))` utilise le même moteur que la CLI.
+Les schémas sont inclus dans la wheel. Voir [le contrat et les exemples Python](docs/phase2_python_api.md).
+
 ## Benchmark CPU/RAM
 
 ```bash

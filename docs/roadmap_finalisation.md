@@ -1,8 +1,12 @@
 # SignalFlow — audit et feuille de route de finalisation
 
-Date : 16 novembre 2026. Périmètre de cette session : **phase 1 uniquement**.
-Ce document propose les phases suivantes ; aucune de leurs fonctionnalités n’est
-annoncée comme livrée. La phase 2 attend l’autorisation explicite de l’utilisateur.
+Audit initial : 16 novembre 2026, limité à la phase 1. Les sections d’audit ci-dessous
+conservent cet état historique et ses résultats.
+
+**Mise à jour après autorisation « continue » : phase 2 livrée et validée.**
+L’API Python sans YAML, les contrats et les schémas embarqués sont disponibles ;
+280 tests passent et la wheel a été vérifiée hors dépôt. Voir le
+[compte rendu de phase 2](phase2_python_api.md). Les phases 3–12 restent à réaliser.
 
 ## 1. Conclusion de l’audit
 
@@ -328,7 +332,9 @@ résultats réels, limitations et étape suivante autorisée.
   imports lourds ou divergence des copies de schémas.
 - **Acceptation** : entraînement réel via objet sans écrire un YAML temporaire ; mêmes
   scores/partitions/artefacts hors identifiants et temps ; 252 tests conservés.
-- **Compte rendu** : non commencée, autorisation requise. Pas de FastAPI/PostgreSQL ici.
+- **Compte rendu** : livrée après autorisation ; 280 tests réussis, parité sur trois
+  sources de données, wheel hors dépôt sans YAML et CLI compatibles. Les fichiers
+  réellement modifiés et les limites sont détaillés dans [phase2_python_api.md](phase2_python_api.md).
 
 ### Phase 3 — API FastAPI, contrats et sécurité initiale
 
@@ -509,6 +515,6 @@ release/runtime ZenML ; forme du premier déploiement d’inférence. Elles sont
 avant la phase concernée, pas à convertir en fonctionnalités supposées présentes.
 
 Aucune estimation calendaire fiable n’est donnée avant validation des contrats,
-de la compatibilité ZenML et du produit Zenflow. La phase 2 peut être autorisée
-indépendamment de ces deux intégrations. **Arrêt à la remise de cet audit : aucune
-phase 2 commencée.**
+de la compatibilité ZenML et du produit Zenflow. La phase 2 a été livrée
+indépendamment de ces deux intégrations. **Prochaine étape : phase 3 (FastAPI),
+non entamée dans la livraison de phase 2.**

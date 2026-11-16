@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import math
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -12,7 +12,7 @@ from signalflow.config.loader import schema, yaml_loader
 from signalflow.config.loader.paths import resolve_path
 from signalflow.config.loader.settings import Limits
 from signalflow.tools import ToolRegistry
-from signalflow.observability.session import destination
+from .validation import validate_semantics
 
 from .errors import PipelineError
 
@@ -39,11 +39,11 @@ class RunConfiguration:
     def snapshot(self) -> dict[str, Any]:
         """Produire la configuration effective sérialisable pour les artefacts.
 
-        Sans paramètres ; retourne un dictionnaire sans copier les documents.
-        Aucune exception attendue ni effet de bord. Le résultat ne doit pas être
-        modifié par l'appelant et ne contient ni credentials ni URI distante.
+        Sans paramètres ; retourne une copie profonde des documents.
+        Aucune exception attendue ni effet de bord. Le résultat peut être modifié
+        indépendamment de la configuration ; il ne contient ni credentials ni URI distante.
         """
-        return {
+        return deepcopy({
             "project": self.loaded.project,
             "tools": [
                 {"category": item.category, "provider": item.provider,
@@ -54,7 +54,7 @@ class RunConfiguration:
             "training": self.training, "dataset": self.dataset,
             "tracking": self.tracking, "sources": self.sources,
             "monitoring": self.monitoring,
-        }
+        })
 
 
 def _component(
@@ -116,19 +116,7 @@ def load_run_configuration(
     monitoring_path = None
     if any(tool.category == "metrics" and tool.enabled for tool in loaded.tools):
         monitoring, monitoring_path = _component(loaded.project, "monitoring", base, limits)
-        if not math.isfinite(monitoring["interval_seconds"]):
-            raise PipelineError("la période d'échantillonnage doit être finie")
-        if monitoring.get("prometheus", {}).get("enabled") or monitoring.get("logging", {}).get("enabled"):
-            destination(monitoring)
-    split = dataset["split"]
-    # YAML accepte .nan ; les comparaisons JSON Schema seules ne rejettent pas
-    # toujours NaN. Ne jamais propager ces valeurs vers sklearn ou les rapports.
-    if not all(math.isfinite(value) for value in (
-        training["model"]["parameters"]["C"], split["validation"], split["test"],
-    )):
-        raise PipelineError("les paramètres numériques doivent être finis")
-    if split["validation"] + split["test"] >= 1:
-        raise PipelineError("validation + test doit être strictement inférieur à 1")
+    validate_semantics(training, dataset, monitoring)
     # Une éventuelle référence dans tools.yaml ne doit pas contredire le projet.
     # L'override CLI s'applique ensuite à la configuration effective training.
     for tool in loaded.tools:
@@ -138,10 +126,6 @@ def load_run_configuration(
             if tool.config != expected:
                 raise PipelineError("référence tools.config en conflit avec project.yaml")
     source = dataset["source"]
-    if source["type"] == "synthetic":
-        if (source["n_informative"] + source["n_redundant"] > source["n_features"]
-                or 2 ** source["n_informative"] < source["n_classes"]):
-            raise PipelineError("dimensions ou classes du dataset synthétique incohérentes")
     dataset_path = resolve_path(source["path"], base_dir=base) if source["type"] == "csv" else None
     return RunConfiguration(
         base, loaded, training, dataset, tracking,
