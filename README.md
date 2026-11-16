@@ -210,3 +210,15 @@ des entraînements réels, un rechargement et un benchmark : voir le
 4. Envisager le service de prédiction et l'orchestration après validation du socle.
 
 Ces évolutions sont prévues, pas disponibles dans la version actuelle.
+
+### API REST locale — phase 3
+
+L'API de validation est un projet indépendant dans [web/api](web/api/README.md).
+Installation depuis la racine : `python -m pip install -e .`, puis
+`python -m pip install -e 'web/api[test]'`. Lancer `signalflow-api --port 8000`
+et ouvrir http://127.0.0.1:8000/docs.
+
+Elle expose santé, schéma, catalogue d'algorithmes et validation JSON. La création
+d'entraînements renvoie explicitement 501 ; aucun job HTTP n'est exécuté.
+API locale anonyme, non prête pour Internet. Voir le
+[rapport de phase 3](docs/phase3_fastapi.md).

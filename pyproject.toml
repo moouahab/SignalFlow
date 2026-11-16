@@ -39,8 +39,8 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
+testpaths = ["tests", "web/api/tests"]
+pythonpath = ["src", "web/api/src"]
 addopts = "--import-mode=importlib"
 
 [tool.setuptools.package-data]
