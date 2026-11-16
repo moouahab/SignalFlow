@@ -1,0 +1,66 @@
+schema_version: 0.0.1
+project:
+  id: signalflow
+  name: SignalFlow
+  version: 1.0.0
+  description: Exemple de classification reproductible avec scikit-learn et MLflow
+    local.
+  environment: development
+config:
+  model:
+    path: ./model.yaml
+    description: model
+    required: false
+    enabled: false
+    schema: ./schemas/model.schema.json
+  training:
+    path: ./training.yaml
+    description: training
+    required: true
+    enabled: true
+    schema: ./schemas/training.schema.json
+  tools:
+    path: ./tools.yaml
+    description: tools
+    required: true
+    enabled: true
+    schema: ./schemas/tools.schema.json
+  testing:
+    path: ./testing.yaml
+    description: testing
+    required: false
+    enabled: false
+    schema: ./schemas/testing.schema.json
+  security:
+    path: ./security.yaml
+    description: security
+    required: false
+    enabled: false
+    schema: ./schemas/security.schema.json
+  dataset:
+    path: ./dataset.yaml
+    description: dataset
+    required: true
+    enabled: true
+    schema: ./schemas/dataset.schema.json
+  mlops:
+    path: ./mlops.yaml
+    description: mlops
+    required: true
+    enabled: true
+    schema: ./schemas/mlops.schema.json
+  monitoring:
+    path: ./monitoring.yaml
+    schema: ./schemas/monitoring.schema.json
+    description: Monitoring local et publication vers la stack
+    required: true
+    enabled: true
+pipeline:
+  steps:
+  - validate_config
+  - validate_dataset
+  - validate_model
+  - train
+  - evaluate
+  - validate_artifacts
+  stop_on_failure: true

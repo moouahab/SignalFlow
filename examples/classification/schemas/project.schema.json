@@ -1,0 +1,145 @@
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SignalFlow Project Configuration",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema_version",
+    "project",
+    "config",
+    "pipeline"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.0.1"
+    },
+
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "description",
+        "environment"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "development",
+            "testing",
+            "production"
+          ]
+        }
+      }
+    },
+
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "training",
+        "tools",
+        "testing",
+        "security"
+      ],
+      "properties": {
+        "model": { "$ref": "#/$defs/config_file" },
+        "training": { "$ref": "#/$defs/config_file" },
+        "tools": { "$ref": "#/$defs/config_file" },
+        "dataset": { "$ref": "#/$defs/config_file" },
+        "agents": { "$ref": "#/$defs/config_file" },
+        "testing": { "$ref": "#/$defs/config_file" },
+        "security": { "$ref": "#/$defs/config_file" },
+        "mlops": { "$ref": "#/$defs/config_file" },
+        "deployment": { "$ref": "#/$defs/config_file" },
+        "monitoring": { "$ref": "#/$defs/config_file" }
+      }
+    },
+
+    "pipeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps", "stop_on_failure"],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "validate_config",
+              "validate_sources",
+              "validate_dataset",
+              "validate_model",
+              "security_scan",
+              "train",
+              "evaluate",
+              "validate_artifacts",
+              "register_model"
+            ]
+          }
+        },
+        "stop_on_failure": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "config_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "description",
+        "required",
+        "schema"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^\\./.+\\.yaml$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "schema": {
+          "type": "string",
+          "pattern": "^\\./schemas/.+\\.schema\\.json$"
+        }
+      }
+    }
+  }
+}

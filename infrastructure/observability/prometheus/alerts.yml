@@ -1,0 +1,26 @@
+groups:
+  - name: signalflow
+    rules:
+      - alert: ObservabilityTargetDown
+        expr: up == 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: 'Target {{ $labels.job }} indisponible'
+      - alert: SignalFlowSnapshotUnreadable
+        expr: signalflow_snapshot_read_success == 0
+        for: 15s
+        labels: {severity: warning}
+        annotations:
+          summary: 'Snapshot SignalFlow illisible : vérifier les diagnostics locaux'
+      - alert: SignalFlowCollectionIncomplete
+        expr: signalflow_collection_complete == 0 and signalflow_monitoring_enabled == 1
+        for: 15s
+        labels: {severity: warning}
+        annotations:
+          summary: 'Dernière collecte psutil incomplète'
+      - alert: SignalFlowTrainingFailed
+        expr: increase(signalflow_trainings_failed_total[5m]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: 'Un entraînement SignalFlow a échoué'

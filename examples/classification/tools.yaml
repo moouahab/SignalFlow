@@ -1,0 +1,11 @@
+schema_version: 0.0.1
+tools:
+  training:
+    provider: scikit-learn
+    enabled: true
+  experiment_tracking:
+    provider: mlflow
+    enabled: true
+  metrics:
+    provider: local
+    enabled: true

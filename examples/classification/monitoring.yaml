@@ -1,0 +1,11 @@
+schema_version: 0.0.1
+enabled: true
+interval_seconds: 0.05
+max_samples: 10000
+directory: ./outputs/observability
+prometheus:
+  enabled: true
+logging:
+  enabled: true
+  max_bytes: 10485760
+  backups: 3

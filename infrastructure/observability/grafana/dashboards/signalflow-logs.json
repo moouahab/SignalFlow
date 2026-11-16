@@ -1,0 +1,424 @@
+{
+  "uid": "signalflow-logs",
+  "title": "Logs & Diagnostics",
+  "tags": [
+    "signalflow",
+    "local"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "timezone": "browser",
+  "refresh": "15s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "title": "\u00c9v\u00e9nements SignalFlow",
+      "type": "logs",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"signalflow\"} | json | execution_id=~\"$execution_id\" | line_format \"{{.level}} {{.component}}/{{.stage}} {{.event}} run={{.run_id}} exec={{.execution_id}}\"",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Erreurs",
+      "type": "logs",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"signalflow\"} | json | execution_id=~\"$execution_id\" | level=\"ERROR\" | line_format \"{{.level}} {{.component}}/{{.stage}} {{.event}} run={{.run_id}} exec={{.execution_id}}\"",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "D\u00e9marrages et finalisations",
+      "type": "logs",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"signalflow\"} | json | execution_id=~\"$execution_id\" | event=~\"train_started|train_succeeded|train_failed|benchmark_succeeded|benchmark_failed\" | line_format \"{{.level}} {{.component}}/{{.stage}} {{.event}} run={{.run_id}} exec={{.execution_id}}\"",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Phases du pipeline",
+      "type": "logs",
+      "description": "",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"signalflow\"} | json | execution_id=~\"$execution_id\" | stage!=\"\" | line_format \"{{.level}} {{.component}}/{{.stage}} {{.event}} run={{.run_id}} exec={{.execution_id}}\"",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "\u00c9checs cumul\u00e9s (m\u00eame fen\u00eatre temporelle)",
+      "type": "timeseries",
+      "description": "Corr\u00e9lation temporelle agr\u00e9g\u00e9e ; pas de label run_id dans Prometheus.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_trainings_failed_total",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Collecte compl\u00e8te",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_collection_complete",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "execution_id",
+        "label": "Execution ID (regex)",
+        "type": "textbox",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "query": ".*",
+        "hide": 0
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Overview",
+      "url": "/d/signalflow-overview"
+    },
+    {
+      "title": "Infrastructure",
+      "url": "/d/signalflow-resources"
+    },
+    {
+      "title": "Logs",
+      "url": "/d/signalflow-logs"
+    }
+  ]
+}

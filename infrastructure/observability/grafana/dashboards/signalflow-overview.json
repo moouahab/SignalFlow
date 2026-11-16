@@ -1,0 +1,667 @@
+{
+  "uid": "signalflow-overview",
+  "title": "SignalFlow Overview",
+  "tags": [
+    "signalflow",
+    "local"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "timezone": "browser",
+  "refresh": "15s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "title": "Entra\u00eenements d\u00e9marr\u00e9s",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_trainings_started_total",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Entra\u00eenements r\u00e9ussis",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_trainings_succeeded_total",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Entra\u00eenements \u00e9chou\u00e9s",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_trainings_failed_total",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Benchmarks termin\u00e9s",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_benchmarks_succeeded_total",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Dur\u00e9e moyenne cumul\u00e9e du pipeline",
+      "type": "timeseries",
+      "description": "Moyenne de tous les runs observ\u00e9s, publication finale exclue ; pas une mesure de latence r\u00e9seau.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_train_duration_seconds_sum / clamp_min(signalflow_train_duration_seconds_count, 1)",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Dur\u00e9es moyennes par phase",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_phase_duration_seconds_sum / clamp_min(signalflow_phase_duration_seconds_count, 1)",
+          "legendFormat": "{{phase}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "\u00c9volution des terminaisons / seconde",
+      "type": "timeseries",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(signalflow_trainings_succeeded_total[$__rate_interval])",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Alertes actives",
+      "type": "table",
+      "description": "\u00c9tat actuel ; une table vide signifie aucune alerte active.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "legendFormat": "{{alertname}}",
+          "queryType": "range",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Derni\u00e8re publication",
+      "type": "stat",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_last_publication_timestamp_seconds * 1000",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Collecte compl\u00e8te du dernier entra\u00eenement",
+      "type": "stat",
+      "description": "\u00c0 interpr\u00e9ter avec signalflow_monitoring_enabled : 0 si monitoring d\u00e9sactiv\u00e9.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "signalflow_collection_complete",
+          "legendFormat": "{{phase}}{{name}}{{job}}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "showTime": true,
+        "showLabels": false,
+        "showLogAttributes": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Overview",
+      "url": "/d/signalflow-overview"
+    },
+    {
+      "title": "Infrastructure",
+      "url": "/d/signalflow-resources"
+    },
+    {
+      "title": "Logs",
+      "url": "/d/signalflow-logs"
+    }
+  ]
+}

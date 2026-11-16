@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SignalFlow Tools Configuration",
+  "$comment": "La liste des fournisseurs autorisés par catégorie est contrôlée par ToolRegistry, afin de permettre les extensions explicites sans dupliquer le catalogue.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tools"],
+  "properties": {
+    "schema_version": {"const": "0.0.1", "type": "string"},
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {"$ref": "#/$defs/tool"},
+        "training": {"$ref": "#/$defs/tool"},
+        "experiment_tracking": {"$ref": "#/$defs/tool"},
+        "execution": {"$ref": "#/$defs/tool"},
+        "metrics": {"$ref": "#/$defs/tool"},
+        "logging": {"$ref": "#/$defs/tool"},
+        "security": {"$ref": "#/$defs/tool"}
+      }
+    }
+  },
+  "$defs": {
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "enabled"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "enabled": {"type": "boolean"},
+        "config": {"type": "string", "pattern": "^\\./.+\\.yaml$"}
+      }
+    }
+  }
+}

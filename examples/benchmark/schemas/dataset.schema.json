@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "split"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.0.1"
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "name"
+          ],
+          "properties": {
+            "type": {
+              "const": "builtin"
+            },
+            "name": {
+              "enum": [
+                "iris",
+                "wine",
+                "breast_cancer"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "target"
+          ],
+          "properties": {
+            "type": {
+              "const": "csv"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^\\./.+\\.csv$"
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "n_samples",
+            "n_features",
+            "n_informative",
+            "n_redundant",
+            "n_classes",
+            "random_state"
+          ],
+          "properties": {
+            "type": {
+              "const": "synthetic"
+            },
+            "n_samples": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 500000
+            },
+            "n_features": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 512
+            },
+            "n_informative": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 512
+            },
+            "n_redundant": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 512
+            },
+            "n_classes": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            },
+            "random_state": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          }
+        }
+      ]
+    },
+    "split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validation",
+        "test",
+        "stratify"
+      ],
+      "properties": {
+        "validation": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "test": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "stratify": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

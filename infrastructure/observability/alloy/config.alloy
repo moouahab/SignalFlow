@@ -1,0 +1,68 @@
+logging {
+  level = "info"
+  format = "json"
+}
+
+// Positions et file d'envoi sont persistantes, dans des bases distinctes.
+otelcol.storage.file "positions" {
+  directory = "/var/lib/alloy/file-positions"
+  fsync = true
+}
+
+otelcol.storage.file "queue" {
+  directory = "/var/lib/alloy/log-queue"
+  fsync = true
+  compaction {
+    on_rebound = true
+  }
+}
+
+otelcol.receiver.filelog "signalflow" {
+  include = ["/signalflow/events.jsonl*"]
+  include_file_name = false
+  start_at = "beginning"
+  poll_interval = "1s"
+  max_log_size = "16KiB"
+  storage = otelcol.storage.file.positions.handler
+  resource = {"service.name" = "signalflow"}
+  operators = [{
+    type = "json_parser",
+    parse_to = "attributes",
+    timestamp = {
+      parse_from = "attributes.timestamp",
+      layout_type = "gotime",
+      layout = "2006-01-02T15:04:05.999999999Z07:00",
+    },
+    severity = {parse_from = "attributes.level"},
+  }]
+  retry_on_failure {
+    enabled = true
+    initial_interval = "1s"
+    max_interval = "10s"
+    max_elapsed_time = "0s"
+  }
+  output {
+    logs = [otelcol.exporter.otlphttp.loki.input]
+  }
+}
+
+otelcol.exporter.otlphttp "loki" {
+  client {
+    endpoint = "http://loki:3100/otlp"
+    timeout = "5s"
+  }
+  retry_on_failure {
+    enabled = true
+    initial_interval = "1s"
+    max_interval = "10s"
+    max_elapsed_time = "0s"
+  }
+  sending_queue {
+    enabled = true
+    num_consumers = 1
+    sizer = "items"
+    queue_size = 10000
+    block_on_overflow = true
+    storage = otelcol.storage.file.queue.handler
+  }
+}

@@ -1,0 +1,184 @@
+name: signalflow-observability
+
+x-common: &common
+  restart: unless-stopped
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
+services:
+  prometheus:
+    <<: *common
+    image: prom/prometheus:v3.16.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=2GB
+    ports: ['127.0.0.1:9090:9090']
+    extra_hosts: ['host.docker.internal:host-gateway']
+    volumes:
+      - ./infrastructure/observability/prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    read_only: true
+    mem_limit: 768m
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:9090/-/ready']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    <<: *common
+    image: grafana/grafana:13.3.1
+    ports: ['127.0.0.1:3000:3000']
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_password
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+    secrets: [grafana_password]
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:3000/api/health']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  loki:
+    <<: *common
+    image: grafana/loki:3.7.10
+    command: [-config.file=/etc/loki/loki.yaml]
+    volumes:
+      - ./infrastructure/observability/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 512m
+    healthcheck:
+      disable: true
+
+  alloy:
+    <<: *common
+    image: grafana/alloy:v1.22.0
+    user: '473:473'
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy
+      - --stability.level=public-preview
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./infrastructure/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - type: bind
+        source: ./outputs/observability
+        target: /signalflow
+        read_only: true
+        bind: {create_host_path: false}
+      - alloy-data:/var/lib/alloy
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 256m
+
+  node-exporter:
+    <<: *common
+    image: prom/node-exporter:v1.12.1
+    pid: host
+    network_mode: host
+    command:
+      - --web.listen-address=${NODE_EXPORTER_BIND_ADDRESS:-172.17.0.1}:9100
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/root
+      - --collector.disable-defaults
+      - --collector.cpu
+      - --collector.meminfo
+      - --collector.filesystem
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker|var/lib/containers)($|/)
+      - --collector.diskstats
+      - --collector.netdev
+      - --collector.netstat
+      - --collector.uname
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+    read_only: true
+    mem_limit: 128m
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://${NODE_EXPORTER_BIND_ADDRESS:-172.17.0.1}:9100/metrics']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  cadvisor:
+    <<: *common
+    image: ghcr.io/google/cadvisor:0.60.6
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=10s
+      - --store_container_labels=false
+      - --disable_metrics=disk,diskIO,percpu,process,sched,tcp,udp,hugetlb,referenced_memory,cpu_topology,resctrl
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/containerd/containerd.sock:/run/containerd/containerd.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 384m
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/healthz']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  signalflow-exporter:
+    <<: *common
+    build:
+      context: .
+      dockerfile: infrastructure/observability/exporter/Dockerfile
+    image: signalflow-exporter:1.0.0
+    volumes:
+      - type: bind
+        source: ./outputs/observability
+        target: /signalflow
+        read_only: true
+        bind: {create_host_path: false}
+    read_only: true
+    mem_limit: 96m
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9108/health', timeout=2)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: signalflow-observability
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  alloy-data:
+
+secrets:
+  grafana_password:
+    file: ./secrets/grafana_password

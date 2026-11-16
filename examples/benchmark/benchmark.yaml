@@ -1,0 +1,11 @@
+schema_version: 0.0.1
+configurations:
+- name: baseline
+  training: ./training.yaml
+- name: regularized
+  training: ./training-regularized.yaml
+repetitions: 3
+warmup_repetitions: 1
+order_seed: 42
+regression_threshold_percent: 15
+timeout_seconds: 180

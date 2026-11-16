@@ -1,0 +1,95 @@
+
+schema_version: "0.0.1"
+
+# ==========================================
+# IDENTITE DU PROJET
+# ==========================================
+
+project:
+  id : signalflow
+  name: SignalFlow
+
+  version: "1.0.0"
+
+  description: >
+    Plateforme MLOps modulaire et configurable
+    permettant d'automatiser, securiser et
+    optimiser l'entrainement, l'evaluation,
+    le versionnement et le deploiement
+    de modeles de Machine Learning.
+
+  environment: development
+
+# ==========================================
+# CONFIGURATIONS DES COMPOSANTS
+# ==========================================
+
+config:
+
+  model:
+    path: "./model.yaml"
+    description: "Modeles ML et LLM"
+    required: true
+    schema: "./schemas/model.schema.json"
+
+  mlops:
+    path: "./mlops.yaml"
+    description: "Suivi des experiences et registre ML"
+    required: true
+    schema: "./schemas/mlops.schema.json"
+
+  deployment:
+    path: "./deployment.yaml"
+    description: "Deploiement des modeles valides"
+    required: false
+    enabled: false
+    schema: "./schemas/deployment.schema.json"
+
+  training:
+    path: "./training.yaml"
+    description: "Methodes d'entrainement"
+    required: true
+    schema: "./schemas/training.schema.json"
+
+  tools:
+    path: "./tools.yaml"
+    description: "Outils et integrations"
+    required: true
+    schema: "./schemas/tools.schema.json"
+
+  agents:
+    path: "./agents.yaml"
+    description: "Agents IA et leurs roles"
+    required: false
+    enabled: false
+    schema: "./schemas/agents.schema.json"
+
+  testing:
+    path: "./testing.yaml"
+    description: "Tests et validations"
+    required: true
+    schema: "./schemas/testing.schema.json"
+
+  security:
+    path: "./security.yaml"
+    description: "Politiques de securite"
+    required: true
+    schema: "./schemas/security.schema.json"
+
+# ==========================================
+# PIPELINE MLOPS
+# ==========================================
+
+pipeline:
+  steps:
+    - validate_config
+    - validate_sources
+    - validate_dataset
+    - validate_model
+    - security_scan
+    - train
+    - evaluate
+    - validate_artifacts
+    - register_model
+
+  stop_on_failure: true

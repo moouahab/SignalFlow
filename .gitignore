@@ -1,0 +1,39 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# --- Environnements virtuels ---
+.venv/
+venv/
+env/
+
+# --- Build / distribution ---
+build/
+dist/
+*.whl
+
+# --- Caches et couverture ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- Artefacts d'execution (runs, mlflow, modeles, wheelhouse...) ---
+outputs/
+
+# --- Secrets (ne jamais versionner) ---
+secrets/*
+!secrets/.gitkeep
+
+# --- Fichiers d'environnement ---
+.env
+*.env
+
+# --- Divers ---
+.DS_Store
+*.log

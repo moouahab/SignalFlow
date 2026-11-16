@@ -1,0 +1,13 @@
+schema_version: 0.0.1
+source:
+  type: synthetic
+  n_samples: 120000
+  n_features: 120
+  n_informative: 50
+  n_redundant: 20
+  n_classes: 3
+  random_state: 123
+split:
+  validation: 0.2
+  test: 0.2
+  stratify: true

@@ -1,0 +1,3 @@
+schema_version: 0.0.1
+experiment_name: signalflow-classification
+run_name: logistic-regression

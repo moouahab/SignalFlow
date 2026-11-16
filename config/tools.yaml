@@ -1,0 +1,27 @@
+schema_version: "0.0.1"
+
+# Fournisseurs connus uniquement : aucun adaptateur externe livré pour l'instant.
+# Activer un outil autorise son initialisation explicite via ToolRegistry.
+# Les paramètres métier restent dans leurs fichiers spécialisés.
+tools:
+  data:
+    provider: pandas
+    enabled: false
+  training:
+    provider: scikit-learn
+    enabled: false
+  experiment_tracking:
+    provider: mlflow
+    enabled: false
+  execution:
+    provider: docker
+    enabled: false
+  metrics:
+    provider: prometheus
+    enabled: false
+  logging:
+    provider: loki
+    enabled: false
+  security:
+    provider: trivy
+    enabled: false
