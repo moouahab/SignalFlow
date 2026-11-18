@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import uuid
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, JSON, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -26,9 +26,13 @@ class User(Base):
     """Identité locale persistée ; le rôle global est contrôlé par l'opérateur."""
 
     __tablename__ = "sf_users"
+    __table_args__ = (
+        UniqueConstraint("subject", name="uq_sf_users_subject"),
+        Index("ix_sf_users_subject", "subject", unique=True),
+    )
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
-    subject: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    subject: Mapped[str] = mapped_column(String(128))
     display_name: Mapped[str] = mapped_column(String(128))
     role: Mapped[str] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
@@ -41,13 +45,18 @@ class Token(Base):
     """Jeton opaque stocké uniquement sous forme d'empreinte SHA-256."""
 
     __tablename__ = "sf_tokens"
+    __table_args__ = (
+        UniqueConstraint("token_hash", name="uq_sf_tokens_hash"),
+        Index("ix_sf_tokens_token_hash", "token_hash", unique=True),
+    )
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
-    user_id: Mapped[str] = mapped_column(ForeignKey("sf_users.id", ondelete="CASCADE"), index=True)
-    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("sf_users.id"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64))
     label: Mapped[str] = mapped_column(String(128))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="tokens")
 
@@ -56,9 +65,13 @@ class Project(Base):
     """Projet métier, distinct de toute configuration statique du moteur."""
 
     __tablename__ = "sf_projects"
+    __table_args__ = (
+        UniqueConstraint("key", name="uq_sf_projects_key"),
+        Index("ix_sf_projects_key", "key", unique=True),
+    )
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
-    key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    key: Mapped[str] = mapped_column(String(64))
     name: Mapped[str] = mapped_column(String(128))
     description: Mapped[str] = mapped_column(String(512), default="")
     created_by: Mapped[str] = mapped_column(ForeignKey("sf_users.id"))
@@ -75,8 +88,8 @@ class Membership(Base):
 
     __tablename__ = "sf_memberships"
 
-    project_id: Mapped[str] = mapped_column(ForeignKey("sf_projects.id", ondelete="CASCADE"), primary_key=True)
-    user_id: Mapped[str] = mapped_column(ForeignKey("sf_users.id", ondelete="CASCADE"), primary_key=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("sf_projects.id"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("sf_users.id"), primary_key=True)
     role: Mapped[str] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
@@ -91,7 +104,7 @@ class ConfigurationVersion(Base):
     __table_args__ = (UniqueConstraint("project_id", "version", name="uq_sf_config_project_version"),)
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
-    project_id: Mapped[str] = mapped_column(ForeignKey("sf_projects.id", ondelete="CASCADE"), index=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("sf_projects.id"), index=True)
     version: Mapped[int] = mapped_column(Integer)
     document: Mapped[dict] = mapped_column(JSON)
     digest: Mapped[str] = mapped_column(String(64))

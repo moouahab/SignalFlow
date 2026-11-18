@@ -30,7 +30,9 @@ make api                           # http://127.0.0.1:8000/docs
 ```
 
 `make api-token` affiche le jeton brut **une seule fois** ; aucun jeton brut
-n'est conservé dans le dépôt, les journaux ou la base. Le champ `SUBJECT` est
+n'est conservé dans le dépôt, les journaux ou la base. Les nouveaux jetons expirent par défaut au bout de **30 jours**
+(`signalflow-api-token --ttl-days N` permet 1 à 365 jours). Les jetons anciens
+sans expiration restent valides jusqu’à révocation. Le champ `SUBJECT` est
 obligatoire et `ROLE` vaut `admin` par défaut. Le magasin est
 `SIGNALFLOW_DATABASE_URL` (fourni par le Makefile, jamais par une requête HTTP).
 
@@ -54,7 +56,8 @@ Uvicorn configuré à la main, ne pas exposer ce service sur Internet.
 
 `Authorization: Bearer <jeton>` est obligatoire sur toutes les routes sauf
 `health`. Le jeton est opaque (`secrets.token_urlsafe(32)`, 43 caractères),
-stocké uniquement sous forme d'empreinte SHA-256 dans `sf_tokens`. La
+stocké uniquement sous forme d'empreinte SHA-256 dans `sf_tokens`, avec
+`expires_at` pour les nouveaux jetons CLI. La
 comparaison est à temps constant pour le résolveur statique ; le résolveur de
 base interroge par empreinte. Les en-têtes `X-User`, `X-Role` ou analogues ne
 sont jamais pris en compte.
@@ -175,7 +178,7 @@ une route HTTP.
 
 ```bash
 make check          # pip check
-make test           # suite complète, 374 tests réussis
+make test           # suite complète ; nombre de tests selon les extras installés
 make test-api       # contrats HTTP uniquement
 make test-postgres  # 1 test sur le vrai PostgreSQL dédié
 ```

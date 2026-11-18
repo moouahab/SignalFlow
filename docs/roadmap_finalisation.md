@@ -367,7 +367,7 @@ résultats réels, limitations et étape suivante autorisée.
   mise à jour non atomique, fuite via listes/recherches.
 - **Acceptation** : redémarrer l’API conserve projets et historique ; deux éditions
   concurrentes sont arbitrées ; copies/snapshots indépendants ; aucun volume existant touché.
-- **Compte rendu** : non commencée ; pas de migration implicite de SQLite MLflow.
+- **Compte rendu** : implémentation et tests SQLite/API disponibles ; corrections de traçabilité de l’auteur, dépendances API et expiration des jetons réalisées dans un correctif de revue. **Validation réelle PostgreSQL et tests de concurrence inter-processus encore à réaliser** sur une base de test isolée. Documentation : `docs/database.md`. Aucune migration implicite de SQLite MLflow.
 
 ### Phase 5 — Upload et versions de datasets
 

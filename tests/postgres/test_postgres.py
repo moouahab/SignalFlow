@@ -64,3 +64,40 @@ def test_migrations_and_transactional_conflict(factory):
     with session_scope(factory) as session:
         project = ProjectRepository(session).by_key(f'pg-projet-{suffix}')
         assert ConfigurationRepository(session).count(project) == 1
+
+
+def test_concurrent_publication_has_single_winner(factory):
+    """Deux éditions simultanées ne doivent jamais produire le même numéro."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    suffix = uuid.uuid4().hex[:8]
+    key = f'pg-concurrent-{suffix}'
+    subject = f'pg-concurrent-user-{suffix}'
+    with session_scope(factory) as session:
+        user = UserRepository(session).ensure(subject, 'admin')
+        project = ProjectRepository(session).create(key, 'PG', '', user)
+        ConfigurationRepository(session).create_version(project, DOCUMENT, '1' * 64, user, None)
+
+    barrier = Barrier(2)
+
+    def publish(digest):
+        with session_scope(factory) as session:
+            user = UserRepository(session).by_subject(subject)
+            project = ProjectRepository(session).by_key(key)
+            barrier.wait(timeout=15)
+            try:
+                ConfigurationRepository(session).create_version(
+                    project, DOCUMENT, digest * 64, user, 1,
+                )
+            except VersionConflict:
+                return 'conflict'
+            return 'created'
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(publish, ('2', '3')))
+
+    assert sorted(results) == ['conflict', 'created']
+    with session_scope(factory) as session:
+        project = ProjectRepository(session).by_key(key)
+        assert [item.version for item in ConfigurationRepository(session).list_versions(project)] == [1, 2]

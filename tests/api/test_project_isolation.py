@@ -96,5 +96,8 @@ def test_versions_conflict_history_comparison_and_export(clients):
     assert yaml.safe_load(exported.text)['training']['seed'] == 7
 
     assert bob.get('/api/v1/projects/projet-a/configurations/2').status_code == 200
+    # L'auteur est celui qui a publié la version, pas le lecteur connecté.
+    assert bob.get('/api/v1/projects/projet-a/configurations/2').json()['author'] == 'alice'
+    assert [row['author'] for row in root.get('/api/v1/projects/projet-a/configurations').json()['versions']] == ['alice', 'alice']
     denied = bob.post('/api/v1/projects/projet-a/configurations', json={'configuration': DOCUMENT})
     assert denied.status_code == 403

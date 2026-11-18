@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import func, select
+from datetime import datetime, timezone
+
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -44,11 +46,15 @@ class TokenRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def create(self, user_id: str, token_hash: str, label: str) -> Token:
+    def create(self, user_id: str, token_hash: str, label: str,
+               expires_at: datetime | None = None) -> Token:
         """Enregistrer une empreinte ; l'appelant a déjà généré le jeton brut."""
         if len(token_hash) != 64:
             raise ValueError("empreinte de jeton invalide")
-        token = Token(user_id=user_id, token_hash=token_hash, label=label or "local")
+        if expires_at is not None and expires_at.tzinfo is None:
+            raise ValueError("expiration UTC requise")
+        token = Token(user_id=user_id, token_hash=token_hash, label=label or "local",
+                      expires_at=expires_at)
         self.session.add(token)
         self.session.flush()
         return token
@@ -57,7 +63,8 @@ class TokenRepository:
         """Retourner subject/rôle/utilisateur d'un jeton actif, sinon None."""
         row = self.session.execute(
             select(Token, User).join(User, Token.user_id == User.id).where(
-                Token.token_hash == token_hash, Token.revoked_at.is_(None)
+                Token.token_hash == token_hash, Token.revoked_at.is_(None),
+                or_(Token.expires_at.is_(None), Token.expires_at > datetime.now(timezone.utc))
             )
         ).one_or_none()
         if row is None:
@@ -67,8 +74,6 @@ class TokenRepository:
 
     def revoke(self, token_hash: str) -> bool:
         """Révoquer un jeton ; retourner False s'il était absent ou déjà révoqué."""
-        from datetime import datetime, timezone
-
         token = self.session.scalar(select(Token).where(
             Token.token_hash == token_hash, Token.revoked_at.is_(None)
         ))
@@ -163,6 +168,14 @@ class ConfigurationRepository:
         expected_version: int | None,
     ) -> ConfigurationVersion:
         """Publier une version ; conflit si ``expected_version`` est obsolète."""
+        # Sérialiser les publications du même projet dans PostgreSQL.
+        # Le verrou est acquis AVANT de lire la dernière version : une deuxième
+        # transaction attend la première, puis observe la version fraîche.
+        # Sous SQLite, FOR UPDATE est ignoré ; la contrainte UNIQUE reste le garde-fou.
+        self.session.execute(
+            select(Project.id).where(Project.id == project.id).with_for_update()
+        ).scalar_one()
+
         current = self.latest(project)
         actual = current.version if current is not None else 0
         if expected_version is not None and expected_version != actual:
@@ -171,11 +184,21 @@ class ConfigurationRepository:
             project_id=project.id, version=actual + 1, document=document, digest=digest,
             author_id=author.id, parent_id=current.id if current is not None else None,
         )
-        self.session.add(version)
         try:
-            self.session.flush()
+            # SAVEPOINT : si une insertion concurrente non coopérative viole
+            # UNIQUE(project_id, version), la transaction reste utilisable.
+            with self.session.begin_nested():
+                self.session.add(version)
+                self.session.flush()
         except IntegrityError as error:
-            raise VersionConflict("version déjà publiée") from error
+            constraint = getattr(getattr(error.orig, "diag", None), "constraint_name", None)
+            details = str(error.orig)
+            if constraint == "uq_sf_config_project_version" or (
+                "sf_configuration_versions.project_id" in details
+                and "sf_configuration_versions.version" in details
+            ):
+                raise VersionConflict("version déjà publiée") from error
+            raise
         return version
 
     def list_versions(self, project: Project) -> list[ConfigurationVersion]:

@@ -6,9 +6,11 @@ import json
 from typing import Any
 
 import yaml
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from signalflow.persistence.errors import ForbiddenError, NotFoundError, VersionConflict
+from signalflow.persistence.models import User
 from signalflow.persistence.repositories import ConfigurationRepository, ProjectRepository, UserRepository
 from signalflow.persistence.session import session_scope
 
@@ -95,8 +97,14 @@ class ConfigurationService:
                     raise NotFoundError('identite introuvable')
                 project, _ = ProjectRepository(session).visible(key, user, current.is_admin)
                 versions = ConfigurationRepository(session).list_versions(project)
-                return ConfigurationListResponse(versions=[self._response(project.key, item, user.subject)
-                                                            for item in versions])
+                author_ids = {item.author_id for item in versions}
+                authors = dict(session.execute(
+                    select(User.id, User.subject).where(User.id.in_(author_ids))
+                ).all()) if author_ids else {}
+                return ConfigurationListResponse(versions=[
+                    self._response(project.key, item, authors[item.author_id])
+                    for item in versions
+                ])
         except (ForbiddenError, NotFoundError) as error:
             raise _translate(error) from None
 
@@ -111,7 +119,10 @@ class ConfigurationService:
                 row = ConfigurationRepository(session).get_version(project, version)
                 if row is None:
                     raise NotFoundError('version introuvable')
-                return self._response(project.key, row, user.subject)
+                author = UserRepository(session).get(row.author_id)
+                if author is None:
+                    raise NotFoundError('auteur de version introuvable')
+                return self._response(project.key, row, author.subject)
         except (ForbiddenError, NotFoundError) as error:
             raise _translate(error) from None
 
