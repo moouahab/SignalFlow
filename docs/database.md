@@ -162,9 +162,20 @@ SIGNALFLOW_DATABASE_URL='postgresql+psycopg://<utilisateur>:<mot-de-passe>@127.0
 ```
 
 La suite SQLite ne démontre pas les transactions/conflits sous charge réelle
-PostgreSQL. Pour valider complètement la phase 4 : appliquer les migrations à
-une base PostgreSQL isolée, lancer le test de conflit concurrent, créer puis
-relire des versions après redémarrage de l'API, et vérifier les permissions.
+PostgreSQL. Ces contrôles ont été exécutés le 18/11/2026 sur une base jetable
+dédiée (`signalflow_verify_7ca398c1`, créée puis supprimée) :
+
+- `alembic upgrade head` → `0002_token_expiration (head)` ;
+  `alembic check` → `No new upgrade operations detected.`
+- `python -m pytest -q --postgres tests/postgres` → **2 réussis**, dont
+  `test_concurrent_publication_has_single_winner` (un seul gagnant, versions `[1, 2]`).
+- Lecture d'une version après redémarrage de l'API dans un second processus :
+  auteur et historique conservés ; écriture refusée à un lecteur (403) et
+  projet non partagé invisible (404).
+
+Voir `docs/phase4_review.md` pour les commandes et les logs de preuve. La base
+applicative `signalflow_app` n'a pas été touchée ; sauvegarder avant toute
+migration réelle en environnement applicatif.
 
 ## Sauvegarde, restauration et limites
 

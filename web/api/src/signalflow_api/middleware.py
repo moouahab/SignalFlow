@@ -61,6 +61,25 @@ class RequestBoundary:
 
         try:
             headers = self._check_headers(scope)
+            if self._is_upload(scope):
+                if headers.get(b'content-type', b'').split(b';')[0].strip().lower() != b'multipart/form-data':
+                    raise ApiError(415, 'MULTIPART_REQUIRED', 'Un formulaire multipart est requis.')
+                size = 0
+                async def bounded_receive():
+                    nonlocal size
+                    message = await receive()
+                    if message['type'] == 'http.disconnect':
+                        raise ApiError(400, 'REQUEST_DISCONNECTED', 'Requête interrompue.')
+                    size += len(message.get('body', b''))
+                    if size > self.settings.max_dataset_bytes + 16384:
+                        raise ApiError(413, 'REQUEST_TOO_LARGE', 'La requête dépasse la taille autorisée.')
+                    return message
+                try:
+                    async with asyncio.timeout(self.settings.body_timeout_seconds):
+                        await self.app(scope, bounded_receive, secured_send)
+                except TimeoutError:
+                    raise ApiError(408, 'REQUEST_TIMEOUT', 'Délai de lecture dépassé.') from None
+                return
             body = await self._read_body(receive)
             if scope['method'] in ('POST','PUT','PATCH'):
                 media_type = headers.get(b'content-type', b'').split(b';')[0].strip().lower()
@@ -87,6 +106,11 @@ class RequestBoundary:
                 raise
             await error_response(request_id,500,'INTERNAL_ERROR','Une erreur interne est survenue.')(scope,receive,secured_send)
 
+    @staticmethod
+    def _is_upload(scope):
+        return scope['method'] == 'POST' and re.fullmatch(
+            r'/api/v1/projects/[^/]+/datasets/?', scope['path']) is not None
+
     def _check_headers(self, scope: Scope) -> dict[bytes, bytes]:
         headers = dict(scope['headers'])
         hosts = [v for k,v in scope['headers'] if k == b'host']
@@ -109,7 +133,7 @@ class RequestBoundary:
         if lengths:
             if len(lengths) != 1 or not lengths[0].isdigit():
                 raise ApiError(400,'INVALID_CONTENT_LENGTH','Taille de requête invalide.')
-            if len(lengths[0]) > 12 or int(lengths[0]) > self.settings.max_request_bytes:
+            if len(lengths[0]) > 12 or int(lengths[0]) > (self.settings.max_dataset_bytes + 16384 if self._is_upload(scope) else self.settings.max_request_bytes):
                 raise ApiError(413,'REQUEST_TOO_LARGE','La requête dépasse la taille autorisée.')
         return headers
 

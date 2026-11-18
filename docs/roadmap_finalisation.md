@@ -367,7 +367,7 @@ résultats réels, limitations et étape suivante autorisée.
   mise à jour non atomique, fuite via listes/recherches.
 - **Acceptation** : redémarrer l’API conserve projets et historique ; deux éditions
   concurrentes sont arbitrées ; copies/snapshots indépendants ; aucun volume existant touché.
-- **Compte rendu** : implémentation et tests SQLite/API disponibles ; corrections de traçabilité de l’auteur, dépendances API et expiration des jetons réalisées dans un correctif de revue. **Validation réelle PostgreSQL et tests de concurrence inter-processus encore à réaliser** sur une base de test isolée. Documentation : `docs/database.md`. Aucune migration implicite de SQLite MLflow.
+- **Compte rendu** : implémentation et tests SQLite/API disponibles ; corrections de traçabilité de l’auteur, dépendances API et expiration des jetons réalisées dans un correctif de revue (commit `9d411f1`). **Validation réelle PostgreSQL effectuée le 18/11/2026** sur base jetable : migrations `0002`, `alembic check` sans écart, 2 tests `--postgres` réussis dont la concurrence, lecture après redémarrage de l’API et permissions vérifiées (403/404). Suite complète : 378 réussis, 0 avertissement. Documentation : `docs/database.md` et `docs/phase4_review.md` (logs de preuve). Aucune migration implicite de SQLite MLflow. Avant déploiement applicatif : construire les wheels et sauvegarder la base applicative.
 
 ### Phase 5 — Upload et versions de datasets
 
@@ -383,7 +383,7 @@ résultats réels, limitations et étape suivante autorisée.
 - **Acceptation** : CSV uniquement au départ, aucun pickle/zip/exécutable accepté ;
   transaction de publication et collecte des temporaires orphelins définies ; version
   utilisée par un run jamais remplacée silencieusement.
-- **Compte rendu** : non commencée ; quotas initiaux alignés sur le moteur puis mesurés.
+- **Compte rendu** : implémentation phase 5 disponible : upload multipart borné, validation CSV en flux, versions immuables et migration `0003`, téléchargement/aperçu autorisés, collecte hors ligne des orphelins. Limite fichier 32 Mio et plafond de 1 000 000 cellules. Voir `docs/datasets.md`. Validation PostgreSQL et déploiement à distinguer des tests locaux.
 
 ### Phase 6 — Jobs durables, supervision et annulation
 

@@ -269,3 +269,5 @@ Elle expose santé, schéma, catalogue d'algorithmes et validation JSON. La cré
 d'entraînements renvoie explicitement 501 ; aucun job HTTP n'est exécuté.
 API locale anonyme, non prête pour Internet. Voir le
 [rapport de phase 3](docs/phase3_fastapi.md).
+
+Les uploads CSV versionnés et leurs contraintes sont décrits dans [docs/datasets.md](docs/datasets.md).

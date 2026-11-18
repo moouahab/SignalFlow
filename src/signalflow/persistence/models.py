@@ -113,3 +113,22 @@ class ConfigurationVersion(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     project: Mapped[Project] = relationship(back_populates="versions")
+
+
+class DatasetVersion(Base):
+    """CSV publié, immuable ; la clé de stockage est un UUID interne."""
+
+    __tablename__ = 'sf_dataset_versions'
+    __table_args__ = (UniqueConstraint('project_id', 'name', 'version',
+                                       name='uq_sf_dataset_version'),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
+    project_id: Mapped[str] = mapped_column(ForeignKey('sf_projects.id'), index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    version: Mapped[int] = mapped_column(Integer)
+    target: Mapped[str] = mapped_column(String(128))
+    sha256: Mapped[str] = mapped_column(String(64))
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    row_count: Mapped[int] = mapped_column(Integer)
+    columns: Mapped[list] = mapped_column(JSON)
+    author_id: Mapped[str] = mapped_column(ForeignKey('sf_users.id'))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
