@@ -71,7 +71,11 @@ def test_schema_catalog_openapi(client, document):
         '/api/v1/projects/{key}/datasets',
         '/api/v1/projects/{key}/datasets/{identity}',
         '/api/v1/projects/{key}/datasets/{identity}/preview',
-        '/api/v1/projects/{key}/datasets/{identity}/download'}
+        '/api/v1/projects/{key}/datasets/{identity}/download',
+        '/api/v1/projects/{key}/runs',
+        '/api/v1/projects/{key}/runs/{identity}',
+        '/api/v1/projects/{key}/runs/{identity}/cancel',
+        '/api/v1/projects/{key}/runs/{identity}/events'}
     assert openapi['components']['schemas']['TrainingPayload']['additionalProperties'] is False
     for path in ('/api/v1/trainings', '/api/v1/training/validate'):
         assert openapi['paths'][path]['post']['responses']['422']['content']['application/json']['schema']['$ref'].endswith('ErrorResponse')

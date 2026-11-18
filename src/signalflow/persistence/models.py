@@ -132,3 +132,52 @@ class DatasetVersion(Base):
     columns: Mapped[list] = mapped_column(JSON)
     author_id: Mapped[str] = mapped_column(ForeignKey('sf_users.id'))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class Job(Base):
+    """Soumission durable et snapshot indépendant de la configuration."""
+    __tablename__ = 'sf_jobs'
+    __table_args__ = (UniqueConstraint('project_id', 'idempotency_key', name='uq_sf_job_idempotency'),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
+    project_id: Mapped[str] = mapped_column(ForeignKey('sf_projects.id'), index=True)
+    configuration_id: Mapped[str] = mapped_column(ForeignKey('sf_configuration_versions.id'))
+    dataset_id: Mapped[str | None] = mapped_column(ForeignKey('sf_dataset_versions.id'), nullable=True)
+    author_id: Mapped[str] = mapped_column(ForeignKey('sf_users.id'))
+    idempotency_key: Mapped[str] = mapped_column(String(128))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    state: Mapped[str] = mapped_column(String(24), default='queued', index=True)
+    event_seq: Mapped[int] = mapped_column(Integer, default=0)
+    owner: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attempt_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    tracking_sync: Mapped[str] = mapped_column(String(16), default='none')
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class JobAttempt(Base):
+    __tablename__ = 'sf_job_attempts'
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
+    job_id: Mapped[str] = mapped_column(ForeignKey('sf_jobs.id'), unique=True)
+    state: Mapped[str] = mapped_column(String(24))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class JobEvent(Base):
+    __tablename__ = 'sf_job_events'
+    job_id: Mapped[str] = mapped_column(ForeignKey('sf_jobs.id'), primary_key=True)
+    sequence: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class JobOutbox(Base):
+    """Réconciliation MLflow rejouable, créée dans la transaction terminale."""
+    __tablename__ = 'sf_job_outbox'
+    job_id: Mapped[str] = mapped_column(ForeignKey('sf_jobs.id'), primary_key=True)
+    state: Mapped[str] = mapped_column(String(24))
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -8,6 +8,7 @@ from .middleware import RequestBoundary
 from .routes.configurations import router as configurations_router
 from .routes.projects import router as projects_router
 from .routes.datasets import router as datasets_router
+from .routes.runs import router as runs_router
 from .routes.training import router as training_router
 from .schemas.models import ErrorResponse
 from .settings import Settings
@@ -50,7 +51,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.database_url = resolved.database_url
     app.state.session_factory = session_factory
     install_handlers(app)
-    for router in (training_router, projects_router, configurations_router, datasets_router):
+    for router in (training_router, projects_router, configurations_router, datasets_router, runs_router):
         app.include_router(router, prefix="/api/v1")
     app.add_middleware(RequestBoundary, settings=resolved)
     return app

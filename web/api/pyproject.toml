@@ -18,10 +18,12 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10", "httpx>=0.28,<1", "httpx2>=2,<3"]
+worker = ["signalflow[ml,monitoring,postgres]==1.0.0"]
 postgres = ["signalflow[postgres]==1.0.0", "alembic>=1.13,<2"]
 
 [project.scripts]
 signalflow-api = "signalflow_api.__main__:main"
+signalflow-worker = "signalflow_api.jobs.worker:main"
 signalflow-api-token = "signalflow_api.bootstrap:main"
 
 [tool.setuptools.packages.find]

@@ -383,7 +383,7 @@ résultats réels, limitations et étape suivante autorisée.
 - **Acceptation** : CSV uniquement au départ, aucun pickle/zip/exécutable accepté ;
   transaction de publication et collecte des temporaires orphelins définies ; version
   utilisée par un run jamais remplacée silencieusement.
-- **Compte rendu** : implémentation phase 5 disponible : upload multipart borné, validation CSV en flux, versions immuables et migration `0003`, téléchargement/aperçu autorisés, collecte hors ligne des orphelins. Limite fichier 32 Mio et plafond de 1 000 000 cellules. Voir `docs/datasets.md`. Validation PostgreSQL et déploiement à distinguer des tests locaux.
+- **Compte rendu** : implémentation phase 5 disponible : upload multipart borné, validation CSV en flux, versions immuables et migration `0003`, téléchargement/aperçu autorisés, collecte hors ligne des orphelins. Limite fichier 32 Mio et plafond de 1 000 000 cellules. Voir `docs/datasets.md`. Validation PostgreSQL complétée pendant la phase 6 : migrations sans écart ORM et deux publications CSV concurrentes réussies sur base jetable. Aucun déploiement applicatif.
 
 ### Phase 6 — Jobs durables, supervision et annulation
 
@@ -399,7 +399,7 @@ résultats réels, limitations et étape suivante autorisée.
   secrets hérités de l’environnement, concurrence SQLite ; pas de shell utilisateur.
 - **Acceptation** : API reste réactive, reprise démontrée et transitions atomiques ;
   premier worker à concurrence limitée, état métier/MLflow réconcilié, ressources arrêtées.
-- **Compte rendu** : non commencée ; ne pas utiliser FastAPI BackgroundTasks comme file durable.
+- **Compte rendu** : implémentée : file PostgreSQL, soumissions idempotentes, snapshots config/dataset, worker Linux séparé, baux et clôture protégée, annulation, limites CPU/RAM/temps, événements SSE durables et outbox MLflow. Reprise conservatrice sans double entraînement. **407 tests réussis**, plus le parcours CSV réel ajouté séparément ; 5 cas PostgreSQL validés. Entraînement/récupération, SIGKILL et limites noyau vérifiés ; détails et périmètre mono-hôte dans `docs/jobs.md`. Migration `0004_jobs` validée sur base jetable, aucun déploiement applicatif.
 
 ### Phase 7 — Orchestration ZenML
 

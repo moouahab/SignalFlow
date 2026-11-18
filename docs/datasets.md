@@ -94,9 +94,9 @@ Les 19 tests de `tests/datasets` passent : historique et relecture après recré
 API, isolation de projet et rôles, UTF-8/CSV malformé, MIME trompeur, dépassement
 sans Content-Length, limites fichier, symlinks/traversée, collision de stockage,
 échec disque/base et collecte conservant les fichiers référencés. La migration
-SQLite vers head et `alembic check` passent également. La migration `0003` n’a
-pas été appliquée à un PostgreSQL dans cette phase ; cette vérification et les
-mesures de charge restent nécessaires avant déploiement.
+SQLite vers head et `alembic check` passent également. Complément pendant la phase 6 : migrations `0003`/`0004` et `alembic check`
+réussis sur PostgreSQL jetable, ainsi que deux publications concurrentes du même
+dataset (versions 1 et 2). Les mesures de charge restent à effectuer avant déploiement.
 
 Suite complète : **394 réussis** en 231,95 s. Les trois derniers cas ajoutés
 (échec base/limite fichier, racine symlink/valeurs manquantes, collision UUID)
