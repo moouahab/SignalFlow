@@ -45,6 +45,12 @@ testpaths = ["tests", "web/api/tests"]
 pythonpath = ["src", "web/api/src"]
 addopts = "--import-mode=importlib"
 markers = ["postgres: tests sur un PostgreSQL dedicate, actives avec --postgres"]
+# MLflow 3.18 appelle encore codecs.open() dans file_utils.write_to().
+# Dépréciation interne à la dépendance, sans effet fonctionnel : on l'ignore
+# uniquement pour ce module, les autres avertissements restent visibles.
+filterwarnings = [
+    'ignore:codecs\.open\(\) is deprecated:DeprecationWarning:mlflow.utils.file_utils',
+]
 
 [tool.setuptools.package-data]
 "signalflow.config" = ["schemas/*.json"]
