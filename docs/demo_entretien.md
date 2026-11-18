@@ -8,7 +8,7 @@ n'entre pas dans les dix minutes. Conserver les sorties dans `outputs/`, ignoré
 
 ```bash
 python scripts/prepare_observability.py
-docker compose up -d --build
+make observability-up
 mkdir -p outputs/demo
 signalflow benchmark --config-dir examples/benchmark --output-dir outputs/demo-baseline \
   > outputs/demo/benchmark-report.json

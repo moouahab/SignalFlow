@@ -16,6 +16,7 @@ KNOWN_PROVIDERS = {
     "experiment_tracking": "mlflow",
     "execution": "docker",
     "metrics": "prometheus",
+    "llm": "ollama",
     "logging": "loki",
     "security": "trivy",
 }

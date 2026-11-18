@@ -14,9 +14,9 @@ accès aux images lors de la première installation. Depuis la racine du dépôt
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install -e '.[dev,ml,monitoring,observability]'
-python scripts/prepare_observability.py
+make observability-prepare
 docker compose config --quiet
-docker compose up -d --build
+make observability-up
 signalflow train --config-dir examples/classification --output-dir outputs/demo
 ```
 
@@ -24,7 +24,8 @@ La préparation crée le dossier partagé et un mot de passe administrateur Graf
 aléatoire dans `secrets/grafana_password`, sans remplacer un secret existant.
 Elle est nécessaire avant le premier démarrage : Docker ne doit pas créer un
 répertoire de logs appartenant à root. Les démarrages suivants utilisent simplement
-`docker compose up -d`. Attendre la disponibilité de Loki et quelques scrapes
+`make observability-up`, qui ne démarre que les services d'observabilité : les
+services optionnels `ollama` et `mlflow` de la compose restent arrêtés. Attendre la disponibilité de Loki et quelques scrapes
 (5 secondes d’intervalle) avant de chercher le nouveau run.
 
 - Grafana : <http://localhost:3000>, consultation anonyme **Viewer**, dossier SignalFlow.

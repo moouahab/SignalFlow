@@ -3,14 +3,23 @@ import asyncio
 import json
 
 import pytest
+import yaml
 pytest.importorskip('fastapi')
 pytest.importorskip('httpx')
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator
 from signalflow.ml.validation import validate_training_spec
 from signalflow_api.app import create_app
+from signalflow_api.auth import static_resolver_from_spec
 from signalflow_api.dependencies import Principal, get_principal
 from signalflow_api.settings import Settings
+
+ADMIN_TOKEN = 'admin-token-123'
+
+
+@pytest.fixture
+def settings():
+    return Settings(token_resolver=static_resolver_from_spec(f'admin:{ADMIN_TOKEN}'))
 
 
 @pytest.fixture
@@ -25,19 +34,21 @@ def document():
 
 
 @pytest.fixture
-def app():
-    return create_app()
+def app(settings):
+    return create_app(settings)
 
 
 @pytest.fixture
 def client(app):
-    with TestClient(app, base_url='http://127.0.0.1') as client:
+    with TestClient(app, base_url='http://127.0.0.1',
+                    headers={'authorization': f'Bearer {ADMIN_TOKEN}'}) as client:
         yield client
 
 
 def test_health(client):
     assert client.get('/api/v1/health').json() == {
-        'status': 'ok', 'service': 'signalflow-api', 'mode': 'local-anonymous', 'training_execution': False}
+        'status': 'ok', 'service': 'signalflow-api', 'mode': 'authentication-required',
+        'training_execution': False}
 
 
 def test_schema_catalog_openapi(client, document):
@@ -48,8 +59,15 @@ def test_schema_catalog_openapi(client, document):
     assert [a['id'] for a in catalog['algorithms']] == ['logistic_regression']
     assert set(catalog['algorithms'][0]['parameters']['properties']) == {'C', 'max_iter'}
     openapi = client.get('/openapi.json').json()
-    assert set(openapi['paths']) == {'/api/v1/health', '/api/v1/training/schema',
-                                    '/api/v1/training/validate', '/api/v1/algorithms', '/api/v1/trainings'}
+    assert set(openapi['paths']) == {
+        '/api/v1/health', '/api/v1/training/schema', '/api/v1/training/validate',
+        '/api/v1/training/import', '/api/v1/training/export',
+        '/api/v1/algorithms', '/api/v1/trainings',
+        '/api/v1/projects', '/api/v1/projects/{key}', '/api/v1/projects/{key}/members',
+        '/api/v1/projects/{key}/configurations',
+        '/api/v1/projects/{key}/configurations/compare',
+        '/api/v1/projects/{key}/configurations/{version}',
+        '/api/v1/projects/{key}/configurations/{version}/yaml'}
     assert openapi['components']['schemas']['TrainingPayload']['additionalProperties'] is False
     for path in ('/api/v1/trainings', '/api/v1/training/validate'):
         assert openapi['paths'][path]['post']['responses']['422']['content']['application/json']['schema']['$ref'].endswith('ErrorResponse')
@@ -162,9 +180,25 @@ def test_auth_extension_and_errors(client, app, document, caplog):
 
 
 def test_auth_required_fails_closed():
-    with TestClient(create_app(Settings(require_authentication=True)), base_url='http://localhost') as client:
-        assert client.get('/api/v1/health').status_code == 200
-        assert client.get('/api/v1/algorithms').status_code == 503
+    """Sans résolveur, les routes métier restent fermées et health reste public."""
+    with TestClient(create_app(Settings()), base_url='http://localhost') as anonymous:
+        assert anonymous.get('/api/v1/health').status_code == 200
+        assert anonymous.get('/api/v1/algorithms').status_code == 503
+        assert anonymous.get('/api/v1/algorithms', headers={
+            'authorization': 'Bearer absent'}).status_code == 503
+
+
+def test_hashed_tokens_and_roles(client, document):
+    """Les jetons sont hachés, liés à un rôle et refusés si invalides."""
+    response = client.post('/api/v1/training/validate', json=document,
+                           headers={'authorization': 'Bearer wrong-token-123'})
+    assert response.status_code == 401
+    assert response.json()['code'] == 'INVALID_TOKEN'
+    viewer = static_resolver_from_spec(f'viewer:viewer-token-123')
+    with TestClient(create_app(Settings(token_resolver=viewer)), base_url='http://127.0.0.1',
+                    headers={'authorization': 'Bearer viewer-token-123'}) as limited:
+        assert limited.get('/api/v1/algorithms').status_code == 200
+        assert limited.post('/api/v1/trainings', json=document).status_code == 403
 
 
 @pytest.mark.parametrize('kwargs', [{'max_request_bytes': 0}, {'body_timeout_seconds': 0}, {'max_json_depth': 0}])
@@ -220,6 +254,24 @@ def test_synthetic_parity_and_semantics(client, document):
     assert response.json()['configuration'] == validate_training_spec(document).to_dict()
     document['dataset']['source']['n_informative'] = 10
     assert client.post('/api/v1/training/validate', json=document).status_code == 422
+
+
+def test_yaml_import_export_roundtrip(client, document):
+    """L'import YAML est validé par le même contrat que le JSON, puis exporté."""
+    text = yaml.safe_dump(document, sort_keys=False)
+    imported = client.post('/api/v1/training/import', json={'yaml': text})
+    assert imported.status_code == 200, imported.text
+    assert imported.json()['configuration'] == validate_training_spec(document).to_dict()
+    exported = client.post('/api/v1/training/export', json=imported.json()['configuration'])
+    assert exported.status_code == 200, exported.text
+    assert yaml.safe_load(exported.json()['yaml']) == validate_training_spec(document).to_dict()
+
+
+def test_yaml_import_rejects_duplicate_keys_without_leaking(client, document):
+    text = yaml.safe_dump(document, sort_keys=False) + 'training: {schema_version: SECRET}\n'
+    response = client.post('/api/v1/training/import', json={'yaml': text})
+    assert response.status_code == 422
+    assert 'SECRET' not in response.text
 
 
 @pytest.mark.parametrize('host', ['localhost', 'localhost:8000', '[::1]', '[::1]:8000'])

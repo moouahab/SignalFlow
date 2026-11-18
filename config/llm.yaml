@@ -1,0 +1,23 @@
+schema_version: "0.0.1"
+
+# Instance Ollama distante : remplacer l'hote par le votre.
+# Aucune cle n'est ecrite ici ; si un proxy exige un token, indiquer seulement
+# le nom de la variable d'environnement dans api_key_env (ex. OLLAMA_API_KEY).
+ollama:
+  base_url: "http://172.23.144.1:11434"
+  model: "llama3.2:3b"
+  timeout_seconds: 60
+  max_response_bytes: 1048576
+  options:
+    temperature: 0.2
+    top_p: 0.9
+    num_predict: 512
+
+tracking:
+  experiment_name: "ollama-chat"
+  run_name: "ollama-run"
+  # Decommenter pour ecrire dans le serveur MLflow du compose.yaml :
+  # tracking_uri: "http://127.0.0.1:5000"
+  native_traces: true
+  log_prompts: true
+  registered_model_name: "ollama_llama32_3b"

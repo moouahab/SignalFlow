@@ -15,7 +15,16 @@ from signalflow.ml.errors import TrackingError
 
 
 class MLflowTracker:
-    """Client par adaptateur ; la sélection YAML ne peut pas choisir une URI réseau."""
+    """Client par adaptateur ; la sélection YAML ne peut pas choisir une URI réseau.
+
+    Une URI explicite peut etre fournie par le code (facade Ollama) : elle ne
+    provient jamais de tools.yaml et reste validee par l'appelant.
+    """
+
+    def __init__(self, tracking_uri: str | None = None) -> None:
+        """Conserver une URI optionnelle fournie par le code, sinon locale."""
+        self.tracking_uri = tracking_uri
+        self.client: MlflowClient | None = None
 
     def start(self, settings: dict[str, Any], output: Path) -> str:
         """Créer une expérience locale si nécessaire et démarrer un run.
@@ -34,14 +43,19 @@ class MLflowTracker:
         try:
             tracking = output / "tracking"
             tracking.mkdir(parents=True, exist_ok=True)
-            self.client = MlflowClient(tracking_uri=f"sqlite:///{tracking / 'mlflow.db'}")
+            # Un serveur HTTP choisit son stockage d'artefacts ; une base SQLite,
+            # même fournie par le code, doit rester relative au dossier de sortie.
+            server = self.tracking_uri is not None and self.tracking_uri.startswith(("http://", "https://"))
+            uri = self.tracking_uri or f"sqlite:///{tracking / 'mlflow.db'}"
+            self.client = MlflowClient(tracking_uri=uri)
             experiment = self.client.get_experiment_by_name(settings["experiment_name"])
+            expected = None if server else (tracking / "artifacts").as_uri()
             experiment_id = experiment.experiment_id if experiment else self.client.create_experiment(
-                settings["experiment_name"], artifact_location=(tracking / "artifacts").as_uri(),
+                settings["experiment_name"], artifact_location=expected,
             )
-            # Ne pas réutiliser une expérience redirigée vers un backend externe.
+            # Avec un backend fichier, ne pas réutiliser une expérience redirigée ailleurs.
             experiment = self.client.get_experiment(experiment_id)
-            if experiment.artifact_location != (tracking / "artifacts").as_uri():
+            if not server and experiment.artifact_location != expected:
                 raise TrackingError("emplacement des artefacts incompatible avec le stockage local")
             run = self.client.create_run(experiment_id, tags={"mlflow.runName": settings["run_name"]})
             return run.info.run_id

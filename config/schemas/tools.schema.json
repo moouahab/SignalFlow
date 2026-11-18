@@ -16,6 +16,7 @@
         "experiment_tracking": {"$ref": "#/$defs/tool"},
         "execution": {"$ref": "#/$defs/tool"},
         "metrics": {"$ref": "#/$defs/tool"},
+        "llm": {"$ref": "#/$defs/tool"},
         "logging": {"$ref": "#/$defs/tool"},
         "security": {"$ref": "#/$defs/tool"}
       }

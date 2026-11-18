@@ -25,6 +25,8 @@ ml = [
     "SQLAlchemy>=2.0,<2.1",
     "alembic>=1.13,<2",
 ]
+llm = ["mlflow-tracing>=3,<4"]
+postgres = ["psycopg[binary]>=3.2,<4"]
 dev = [
     "pytest>=8.0,<10.0",
 ]
@@ -42,6 +44,7 @@ where = ["src"]
 testpaths = ["tests", "web/api/tests"]
 pythonpath = ["src", "web/api/src"]
 addopts = "--import-mode=importlib"
+markers = ["postgres: tests sur un PostgreSQL dedicate, actives avec --postgres"]
 
 [tool.setuptools.package-data]
 "signalflow.config" = ["schemas/*.json"]

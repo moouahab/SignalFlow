@@ -168,6 +168,42 @@ services:
       timeout: 5s
       retries: 5
 
+  # Optionnel : inutile si votre instance Ollama est déjà accessible ailleurs.
+  # Épingler une version précise avant une mise en production.
+  ollama:
+    <<: *common
+    image: ollama/ollama:latest
+    ports: ['127.0.0.1:11434:11434']
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: [CMD, ollama, list]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Interface MLflow : backend SQLite + artefacts servis localement.
+  # Les appels Ollama suivis pointent ici via tracking.tracking_uri dans llm.yaml.
+  mlflow:
+    <<: *common
+    image: ghcr.io/mlflow/mlflow:v3.18.0
+    command:
+      - mlflow
+      - server
+      - --host=0.0.0.0
+      - --port=5000
+      - --backend-store-uri=sqlite:////mlflow/mlflow.db
+      - --artifacts-destination=/mlflow/artifacts
+      - --serve-artifacts
+    ports: ['127.0.0.1:5000:5000']
+    volumes:
+      - mlflow-data:/mlflow
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=2)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
 networks:
   default:
     name: signalflow-observability
@@ -178,6 +214,8 @@ volumes:
   grafana-data:
   loki-data:
   alloy-data:
+  ollama-data:
+  mlflow-data:
 
 secrets:
   grafana_password:

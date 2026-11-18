@@ -78,7 +78,7 @@ Commandes de vérification :
 ```bash
 .venv/bin/python -m pytest -q
 docker compose config --quiet
-docker compose up -d --build
+make observability-up
 .venv/bin/python -m pytest --compose tests/compose -q
 python3 -m pip wheel . --no-deps --no-build-isolation --no-index \
   -w outputs/observability-validation/dist

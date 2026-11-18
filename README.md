@@ -64,6 +64,43 @@ Pour la configuration seule : `python -m pip install -e .`.
 Les versions exactes utilisées pour la validation figurent dans le
 [rapport de stabilisation](docs/stabilisation.md).
 
+## Utilisation simplifiée
+
+Tout se fait depuis la racine du dépôt, avec un seul `.venv` :
+
+```bash
+make            # affiche l'aide et le démarrage rapide
+make install    # une seule fois : SignalFlow + API + MLflow 3.18
+make demo       # lance les deux expériences Iris
+make bench      # benchmark CPU/RAM
+make chat       # parle à Ollama : PROMPT="Bonjour" par défaut
+make ui         # démarre l'UI MLflow sur http://localhost:5002
+make health     # vérifie MLflow, l'assistant et Ollama
+make observability-up  # Grafana/Prometheus/Loki, sans second Ollama
+make shell      # entre dans .venv
+```
+
+Commandes de cycle de vie :
+
+```bash
+make urls       # affiche les URLs utiles
+make logs       # dernières lignes du log MLflow
+make restart    # redémarre proprement le serveur 5002
+make stop       # arrête le serveur 5002
+```
+
+Pour personnaliser sans changer de commande :
+
+```bash
+make chat PROMPT="Explique MLflow"
+make demo OUTPUT_DIR=outputs/essai1
+make ui MLFLOW_PORT=5003
+```
+
+Les commandes longues restent disponibles (`make train`, `make benchmark`,
+`make ollama-chat`, `make mlflow-ui-bg`, `make assistant-check`, etc.) :
+`make help` les liste toutes.
+
 ## Entraînement léger pour la démonstration
 
 Depuis la racine du dépôt :
@@ -115,8 +152,8 @@ Voir [le protocole et les limites](docs/observability.md) et les
 ## Visualisation et logs avec Docker Compose
 
 ```bash
-python scripts/prepare_observability.py
-docker compose up -d --build
+make observability-prepare
+make observability-up
 signalflow train --config-dir examples/classification --output-dir outputs/demo
 ```
 
@@ -147,6 +184,16 @@ Le modèle est un artefact joblib, pas une entrée du Model Registry.
 
 Le [guide d'entretien](docs/demo_entretien.md) fournit les commandes de consultation
 MLflow et de rechargement d'un modèle de confiance.
+
+## Ollama dans MLflow
+
+Le fournisseur `llm=ollama` ajoute des appels tracés dans MLflow (run, métriques,
+artefacts et traces natives), un modèle pyfunc versionné dans le Model Registry,
+et les services `ollama` / `mlflow` de `compose.yaml`. L'instance Ollama peut être
+distante : son URL est validée dans `config/llm.yaml`, jamais inférée du code.
+
+Voir [le guide Ollama](docs/ollama.md) pour la configuration, la CLI
+`signalflow ollama --chat/--generate/--models/--health` et le démarrage de l'UI.
 
 ## Configuration et extension
 

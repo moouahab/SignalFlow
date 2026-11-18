@@ -1,0 +1,38 @@
+name: signalflow-app
+
+x-common: &common
+  restart: unless-stopped
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
+services:
+  postgres:
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: signalflow_app
+      POSTGRES_USER: signalflow
+      POSTGRES_PASSWORD: ${SIGNALFLOW_POSTGRES_PASSWORD:-signalflow-local}
+    ports: ['127.0.0.1:5433:5432']
+    volumes:
+      - app-postgres-data:/var/lib/postgresql/data
+    mem_limit: 768m
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U signalflow -d signalflow_app']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  app-postgres-data:

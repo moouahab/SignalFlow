@@ -45,8 +45,22 @@ class HealthResponse(BaseModel):
 
     status: Literal['ok'] = 'ok'
     service: Literal['signalflow-api'] = 'signalflow-api'
-    mode: Literal['local-anonymous', 'authentication-required']
+    mode: Literal['authentication-required'] = 'authentication-required'
     training_execution: Literal[False] = False
+
+
+class YamlImportRequest(BaseModel):
+    """Enveloppe JSON contenant un document YAML à valider côté serveur."""
+
+    model_config = ConfigDict(extra='forbid', strict=True)
+    yaml: str = Field(min_length=1, max_length=65536)
+
+
+class YamlExportResponse(BaseModel):
+    """Document YAML produit par le serveur, sans chemin ni donnée locale."""
+
+    yaml: str
+    configuration: TrainingPayload
 
 
 class Algorithm(BaseModel):

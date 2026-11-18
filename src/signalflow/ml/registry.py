@@ -13,13 +13,18 @@ def _mlflow(declaration: ToolDeclaration) -> object:
     return MLflowTracker()
 
 
+def _ollama(declaration: ToolDeclaration) -> object:
+    from signalflow.llm.adapters.ollama import OllamaClient
+    return OllamaClient.from_declaration(declaration)
+
+
 def _local(declaration: ToolDeclaration) -> object:
     from signalflow.monitoring.local import LocalMonitor
     return LocalMonitor()
 
 
 def create_registry() -> ToolRegistry:
-    """Construire un registre avec sklearn, MLflow et monitoring local.
+    """Construire un registre avec sklearn, MLflow, monitoring local et Ollama.
 
     Sans paramètres. Retourne un nouveau ToolRegistry, sans modifier de singleton.
     Aucune exception attendue. N'importe aucun SDK et n'appelle aucune factory.
@@ -29,4 +34,5 @@ def create_registry() -> ToolRegistry:
     registry.register("training", "scikit-learn", _sklearn)
     registry.register("experiment_tracking", "mlflow", _mlflow)
     registry.register("metrics", "local", _local)
+    registry.register("llm", "ollama", _ollama)
     return registry

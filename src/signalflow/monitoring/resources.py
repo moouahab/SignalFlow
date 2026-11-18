@@ -6,22 +6,18 @@ from pathlib import Path
 import platform
 from typing import Any, Protocol
 
-
 @dataclass(frozen=True)
 class Reading:
     """RSS en octets et CPU user+system cumulé, hors processus enfants."""
-
     rss_bytes: int
     cpu_seconds: float
 
 
 class ResourceProbe(Protocol):
     """Source injectable de mesures CPU/RAM, sans connaître le pipeline."""
-
     def read(self) -> Reading:
         """Retourner les compteurs courants ; peut lever une erreur d'accès OS."""
         ...
-
     def environment(self) -> dict[str, Any]:
         """Retourner les ressources visibles du système, sans secrets ni environnement shell."""
         ...
@@ -29,10 +25,8 @@ class ResourceProbe(Protocol):
 
 class PsutilProbe:
     """Sonde locale ; psutil n'est importé qu'à l'activation du fournisseur."""
-
     def __init__(self) -> None:
         """Créer la sonde courante, sans paramètre ni retour.
-
         Importe psutil ; ImportError si l'extra monitoring est absent. Aucun réseau.
         """
         import psutil
@@ -41,7 +35,6 @@ class PsutilProbe:
 
     def read(self) -> Reading:
         """Lire RSS et user+system du processus ; retourne Reading.
-
         Aucun paramètre. Lectures OS seulement ; erreurs psutil propagées.
         Les threads sont inclus, les enfants exclus ; la RAM partagée compte dans RSS.
         """
@@ -50,7 +43,6 @@ class PsutilProbe:
 
     def environment(self) -> dict[str, Any]:
         """Décrire le matériel visible et la mémoire système au démarrage.
-
         Aucun paramètre. Retourne un dictionnaire JSON, sans identifiants ou secrets.
         Lectures OS ; erreurs psutil propagées, affinité indisponible notée null.
         Les quotas cgroup ne sont pas mesurés : les totaux visibles ne sont pas une

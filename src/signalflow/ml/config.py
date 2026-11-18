@@ -75,10 +75,11 @@ def _component(
 def _check_tools(configuration: loader.LoadedConfiguration) -> None:
     active = {item.category: item.provider for item in configuration.tools if item.enabled}
     metrics = active.pop("metrics", None)
-    if active != REQUIRED_TOOLS or metrics not in (None, "local"):
+    llm = active.pop("llm", None)
+    if active != REQUIRED_TOOLS or metrics not in (None, "local") or llm not in (None, "ollama"):
         raise PipelineError(
             "ce pipeline requiert uniquement training=scikit-learn et "
-            "experiment_tracking=mlflow activés, avec metrics=local facultatif",
+            "experiment_tracking=mlflow activés, avec metrics=local et llm=ollama facultatifs",
             hint="désactiver les outils non utilisés par ce pipeline minimal",
         )
     if tuple(configuration.project["pipeline"]["steps"]) != STEPS:

@@ -43,7 +43,7 @@ leur interprétation sont dans [la référence](../../docs/benchmark_reference.m
 
 Cet exemple active le monitoring psutil, les métriques persistantes et les logs JSON.
 Depuis la racine du dépôt, exécuter `python scripts/prepare_observability.py` puis
-`docker compose up -d --build` pour les visualiser dans Grafana. L’entraînement
+`make observability-up` pour les visualiser dans Grafana. L’entraînement
 fonctionne aussi avec la stack arrêtée ; les publications restent sur disque.
 Le dossier partagé est `outputs/observability`, indépendamment de `--output-dir`.
 Hors dépôt, définir `SIGNALFLOW_OBSERVABILITY_DIR` vers ce dossier absolu.

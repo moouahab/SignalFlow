@@ -19,6 +19,11 @@ tools:
   metrics:
     provider: prometheus
     enabled: false
+  # Instance Ollama distante, activee seulement pour les commandes `ollama`.
+  llm:
+    provider: ollama
+    enabled: true
+    config: ./llm.yaml
   logging:
     provider: loki
     enabled: false

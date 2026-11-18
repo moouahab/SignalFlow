@@ -19,6 +19,7 @@ from signalflow.config.loader.errors import (
     ConfigValidationError,
 )
 from signalflow.config.loader.settings import Limits
+from signalflow.ml.registry import create_registry
 from signalflow.tools import (
     ToolDeclaration,
     ToolInitializationError,
@@ -51,9 +52,10 @@ def update_reference(base, **changes):
 def test_valid_configuration_and_legacy_api(config_dir):
     configuration = load_configuration(config_dir)
     assert configuration.project == load_config(config_dir)
-    assert len(configuration.tools) == 7
-    assert all(not tool.enabled for tool in configuration.tools)
-    assert ToolRegistry().initialize(configuration.tools) == {}
+    assert len(configuration.tools) == 8
+    enabled = [tool.category for tool in configuration.tools if tool.enabled]
+    assert enabled == ["llm"]
+    assert set(create_registry().initialize(configuration.tools)) == {"llm"}
 
 
 @pytest.mark.parametrize("document", [
@@ -222,6 +224,7 @@ def test_registry_extension_and_explicit_initialization(config_dir):
 
 
 def test_disabled_factory_never_called(config_dir):
+    write_tools(config_dir, {"data": {"provider": "pandas", "enabled": False}})
     registry = ToolRegistry()
     factory = Mock(side_effect=AssertionError("must not run"))
     registry.register("data", "pandas", factory)
