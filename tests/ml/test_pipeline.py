@@ -40,6 +40,7 @@ def test_full_pipeline_mlflow_artifacts_and_offline(ml_config, tmp_path, monkeyp
     assert artifact_names == {
         "model.joblib", "configuration.json", "environment.json", "metrics.json",
         "dataset.json", "split_indices.json", "report.json",
+        "mlflow_model", "model_manifest.json",
     }
     artifact = Path(client.download_artifacts(report["run_id"], "configuration.json"))
     config = json.loads(artifact.read_text())

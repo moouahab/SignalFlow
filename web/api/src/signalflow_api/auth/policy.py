@@ -1,8 +1,8 @@
 """Rôles locaux et liste fermée de permissions."""
 from __future__ import annotations
 
-READ = frozenset({"dataset:read", "training:read", "config:read", "project:read"})
-WRITE = READ | frozenset({"dataset:write", "training:validate", "training:create", "config:write", "project:write"})
+READ = frozenset({"dataset:read", "training:read", "config:read", "project:read", "model:read"})
+WRITE = READ | frozenset({"dataset:write", "training:validate", "training:create", "config:write", "project:write", "model:write"})
 ADMIN = WRITE | frozenset({"project:manage", "token:manage"})
 
 ROLES: dict[str, frozenset[str]] = {

@@ -46,8 +46,10 @@ services:
     environment:
       SIGNALFLOW_DATABASE_URL: postgresql+psycopg://signalflow:${SIGNALFLOW_POSTGRES_PASSWORD:-signalflow-local}@postgres:5432/signalflow_app
       SIGNALFLOW_DATASET_ROOT: /data/datasets
+      SIGNALFLOW_JOB_ROOT: /data/jobs
+      SIGNALFLOW_REGISTRY_ROOT: /data/registry
     ports: ['127.0.0.1:8001:8000']
-    volumes: [app-datasets:/data/datasets]
+    volumes: [app-datasets:/data/datasets, app-jobs:/data/jobs:ro, app-registry:/data/registry]
     read_only: true
     tmpfs: ['/tmp:size=128m,mode=1777']
     mem_limit: 512m
@@ -82,4 +84,5 @@ services:
 volumes:
   app-datasets:
   app-jobs:
+  app-registry:
   app-postgres-data:

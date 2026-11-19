@@ -275,3 +275,6 @@ Les uploads CSV versionnés et leurs contraintes sont décrits dans [docs/datase
 Les jobs durables, leur worker Linux et les procédures de reprise sont décrits dans [docs/jobs.md](docs/jobs.md).
 
 L’orchestration ZenML optionnelle et son runtime isolé sont documentés dans [docs/zenml.md](docs/zenml.md).
+
+La comparaison des expériences, la promotion explicite des modèles MLflow et les alias
+avec contrôle de concurrence sont décrits dans [docs/models.md](docs/models.md).

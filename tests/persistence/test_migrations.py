@@ -31,6 +31,7 @@ def test_migrations_upgrade_and_metadata_alignment(tmp_path):
         assert {
             "sf_users", "sf_tokens", "sf_projects", "sf_memberships",
             "sf_configuration_versions",
+            "sf_model_registrations", "sf_model_alias_events",
         }.issubset(set(inspector.get_table_names()))
         assert "expires_at" in {column["name"] for column in inspector.get_columns("sf_tokens")}
     finally:

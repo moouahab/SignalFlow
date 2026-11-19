@@ -429,7 +429,7 @@ résultats réels, limitations et étape suivante autorisée.
   arbitraire en code exécutable, confondre fichier artefact et modèle MLflow enregistré.
 - **Acceptation** : sélection humaine tracée, version résoluble et immuable ; migration
   des artefacts historiques seulement explicite ; une source de vérité pour le registre.
-- **Compte rendu** : non commencée ; MLflow skinny/full et packaging des flavors à qualifier.
+- **Compte rendu** : implémentée le 19/11/2026 pour le registre local. Comparaison de jobs autorisés avec avertissements dataset/partition/environnement/cible, métriques manquantes et sélection sur test. Package MLflow sklearn/pyfunc produit pendant l'entraînement avec signature et empreintes ; promotion humaine idempotente, copie vérifiée sans chargement de pickle et reprise après commit MLflow incertain. Versions et alias lus depuis MLflow ; déplacement d'alias avec précondition de version et verrou interprocessus local, intentions auditées. Migration `0005_models`, permissions projet, configuration des volumes et guide `docs/models.md`. MLflow-skinny 3.18.0 avec pandas 3.1.1 qualifié : quatre tests ZenML réels passent et rechargement pyfunc vérifié. Les anciens runs restent lisibles ; pas de conversion implicite de joblib, ni registre distant ou déploiement effectué.
 
 ### Phase 9 — Frontend et éditeur graphique
 

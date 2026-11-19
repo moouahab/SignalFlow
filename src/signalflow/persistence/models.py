@@ -181,3 +181,31 @@ class JobOutbox(Base):
     job_id: Mapped[str] = mapped_column(ForeignKey('sf_jobs.id'), primary_key=True)
     state: Mapped[str] = mapped_column(String(24))
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ModelRegistration(Base):
+    """Demande humaine durable ; MLflow reste propriétaire des versions et alias."""
+    __tablename__ = 'sf_model_registrations'
+    __table_args__ = (UniqueConstraint('project_id', 'name', 'job_id', name='uq_sf_model_job'),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
+    project_id: Mapped[str] = mapped_column(ForeignKey('sf_projects.id'), index=True)
+    job_id: Mapped[str] = mapped_column(ForeignKey('sf_jobs.id'))
+    name: Mapped[str] = mapped_column(String(64))
+    author_id: Mapped[str] = mapped_column(ForeignKey('sf_users.id'))
+    reason: Mapped[str] = mapped_column(String(1024))
+    version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class ModelAliasEvent(Base):
+    """Intention auditable avant écriture MLflow ; aucune copie d'alias courant."""
+    __tablename__ = 'sf_model_alias_events'
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_identifier)
+    project_id: Mapped[str] = mapped_column(ForeignKey('sf_projects.id'), index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    alias: Mapped[str] = mapped_column(String(64))
+    previous_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    version: Mapped[str] = mapped_column(String(32))
+    author_id: Mapped[str] = mapped_column(ForeignKey('sf_users.id'))
+    reason: Mapped[str] = mapped_column(String(1024))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

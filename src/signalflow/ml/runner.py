@@ -195,6 +195,8 @@ def _run_configuration(configuration: RunConfiguration, output_dir: str | Path,
         with observer.stage("artifact_save"):
             trainer.save(result, destination)
             _save_results(result, destination)
+            from .model_package import save_package
+            report['model_package'] = save_package(result, destination)
             _write_json(destination / "report.json", report)
         with observer.stage("tracking_export"):
             tracker.log(run_id, {"dataset_sha256": result.dataset.sha256}, {

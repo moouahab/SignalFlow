@@ -42,6 +42,8 @@ def safe_result(report):
     metrics = {key: value for key, value in report['metrics'].items()
                if isinstance(value, (float, int)) and math.isfinite(value)}
     result = {'run_id': report['run_id'], 'metrics': metrics}
+    if report.get('model_package'):
+        result['model_package'] = report['model_package']
     if report.get('orchestration'):
         result['orchestration'] = report['orchestration']
     return result

@@ -176,7 +176,10 @@ def test_real_yaml_object_parity_without_yaml_reads(spec_data, ml_config, tmp_pa
     tracked = MlflowClient(tracking_uri=result['tracking_uri']).get_run(object_report.run_id)
     assert tracked.info.status == 'FINISHED'
     assert tracked.data.metrics['validation_accuracy'] == object_report.metrics['validation_accuracy']
-    assert not list((tmp_path/'object-run').rglob('*.yaml'))
+    # MLflow produit ses environnements YAML de sortie ; aucune configuration
+    # YAML d'entrée n'est créée ni lue par l'API objets.
+    assert all(path.parent.name == 'mlflow_model' and path.name in {'conda.yaml', 'python_env.yaml'}
+               for path in (tmp_path/'object-run').rglob('*.yaml'))
 
 
 @pytest.mark.parametrize('fail', [False,True])

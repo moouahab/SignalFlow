@@ -22,6 +22,8 @@ class Settings:
     max_json_depth: int = 32
     token_resolver: TokenResolver | None = None
     database_url: str | None = None
+    job_root: str | None = None
+    registry_root: str | None = None
 
     def __post_init__(self) -> None:
         """Refuser des paramètres opérateur hors limites."""
@@ -45,4 +47,6 @@ class Settings:
             dataset_root=os.environ.get("SIGNALFLOW_DATASET_ROOT") or None,
             max_dataset_bytes=int(os.environ.get("SIGNALFLOW_MAX_DATASET_BYTES", 32 * 1024 * 1024)),
             database_url=os.environ.get("SIGNALFLOW_DATABASE_URL") or None,
+            job_root=os.environ.get("SIGNALFLOW_JOB_ROOT") or None,
+            registry_root=os.environ.get("SIGNALFLOW_REGISTRY_ROOT") or None,
         )

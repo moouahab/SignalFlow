@@ -60,6 +60,11 @@ def test_schema_catalog_openapi(client, document):
     assert set(catalog['algorithms'][0]['parameters']['properties']) == {'C', 'max_iter'}
     openapi = client.get('/openapi.json').json()
     assert set(openapi['paths']) == {
+        '/api/v1/projects/{key}/experiments/compare',
+        '/api/v1/projects/{key}/models',
+        '/api/v1/projects/{key}/models/{name}/versions',
+        '/api/v1/projects/{key}/models/{name}/aliases/{alias}',
+        '/api/v1/projects/{key}/models/{name}/audit',
         '/api/v1/health', '/api/v1/training/schema', '/api/v1/training/validate',
         '/api/v1/training/import', '/api/v1/training/export',
         '/api/v1/algorithms', '/api/v1/trainings',

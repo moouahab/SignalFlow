@@ -29,7 +29,8 @@ def test_real_training_recovery_after_mlflow_publication(jobs, monkeypatch):
     assert result['state'] == 'succeeded', result
     assert result['tracking_sync'] == 'synced'
     assert result['result']['metrics']['test_accuracy'] > .8
-    assert set(result['result']) == {'run_id', 'metrics'}
+    assert set(result['result']) == {'run_id', 'metrics', 'model_package'}
+    assert result['result']['model_package']['format'] == 1
     with session_scope(worker.queue.factory) as session:
         assert session.scalar(select(func.count()).select_from(JobAttempt)) == 1
     assert len(list((directory / 'output' / 'runs').iterdir())) == 1
