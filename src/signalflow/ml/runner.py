@@ -135,7 +135,7 @@ def run_training_spec(spec: TrainingSpec, context: ExecutionContext) -> Training
         monitoring=data.get("monitoring"),
     )
     return TrainingReport.from_dict(_run_configuration(
-        configuration, context.output_dir, create_registry(), started_at,
+        configuration, context.output_dir, create_registry(context), started_at,
     ))
 
 
@@ -190,6 +190,8 @@ def _run_configuration(configuration: RunConfiguration, output_dir: str | Path,
             "artifacts": str(destination), "model": str(destination / "model.joblib"),
             "tracking_uri": f"sqlite:///{output / 'tracking' / 'mlflow.db'}",
         }
+        if getattr(trainer, "orchestration", None):
+            report["orchestration"] = trainer.orchestration
         with observer.stage("artifact_save"):
             trainer.save(result, destination)
             _save_results(result, destination)

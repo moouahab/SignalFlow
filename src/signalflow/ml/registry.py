@@ -23,7 +23,7 @@ def _local(declaration: ToolDeclaration) -> object:
     return LocalMonitor()
 
 
-def create_registry() -> ToolRegistry:
+def create_registry(context=None) -> ToolRegistry:
     """Construire un registre avec sklearn, MLflow, monitoring local et Ollama.
 
     Sans paramètres. Retourne un nouveau ToolRegistry, sans modifier de singleton.
@@ -31,7 +31,12 @@ def create_registry() -> ToolRegistry:
     Les dépendances sont chargées uniquement à initialize() pour un outil actif.
     """
     registry = ToolRegistry()
-    registry.register("training", "scikit-learn", _sklearn)
+    factory = _sklearn
+    if context is not None and context.orchestration == "zenml":
+        def factory(declaration):
+            from signalflow.orchestration.zenml_adapter import ZenMLTrainer
+            return ZenMLTrainer(context.output_dir)
+    registry.register("training", "scikit-learn", factory)
     registry.register("experiment_tracking", "mlflow", _mlflow)
     registry.register("metrics", "local", _local)
     registry.register("llm", "ollama", _ollama)

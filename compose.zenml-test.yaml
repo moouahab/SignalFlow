@@ -1,0 +1,68 @@
+# Projet et volumes dédiés aux validations ; aucun port publié sur l’hôte.
+name: signalflow-zenml-check
+x-runtime: &runtime
+  image: signalflow-zenml-check:local
+  build:
+    context: .
+    dockerfile: web/api/Dockerfile
+    target: zenml
+  environment: &environment
+    SIGNALFLOW_DATABASE_URL: postgresql+psycopg://check:check-local@postgres:5432/check
+    SIGNALFLOW_DATASET_ROOT: /data/datasets
+    SIGNALFLOW_JOB_ROOT: /data/jobs
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  read_only: true
+  tmpfs: ['/tmp:size=128m,mode=1777']
+  pids_limit: 128
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: check
+      POSTGRES_USER: check
+      POSTGRES_PASSWORD: check-local
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U check -d check]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  migrate:
+    <<: *runtime
+    command: [python, -m, alembic, upgrade, head]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    <<: *runtime
+    command: [uvicorn, signalflow_api.app:create_app, --factory, --host, 0.0.0.0, --port, '8000']
+    volumes: [datasets:/data/datasets]
+    mem_limit: 512m
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  worker:
+    <<: *runtime
+    command: [signalflow-worker]
+    volumes: [datasets:/data/datasets:ro, jobs:/data/jobs]
+    mem_limit: 3g
+    cpus: 1
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  validate:
+    <<: *runtime
+    command: [python, /validation.py]
+    volumes:
+      - ./tests/docker/validate_zenml.py:/validation.py:ro
+      - jobs:/data/jobs
+      - checks:/data/check
+    depends_on:
+      - api
+      - worker
+volumes:
+  database:
+  datasets:
+  jobs:
+  checks:

@@ -41,9 +41,12 @@ class ExecutionContext:
 
     output_dir: Path | str
     dataset_root: Path | str | None = None
+    orchestration: str = "local"
 
     def __post_init__(self) -> None:
         """Résoudre les chemins sans effet d'écriture ; erreurs traduites en PipelineError."""
+        if self.orchestration not in {"local", "zenml"}:
+            raise PipelineError("orchestration inconnue")
         try:
             object.__setattr__(self, "output_dir", Path(self.output_dir).expanduser().resolve())
             if self.dataset_root is not None:

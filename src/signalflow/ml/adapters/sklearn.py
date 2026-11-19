@@ -10,13 +10,10 @@ from typing import Any
 
 import joblib
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 from threadpoolctl import threadpool_limits
 
+from signalflow.orchestration.local import build_model, preprocess, fit, evaluate as _evaluate
 from signalflow.ml.errors import TrainingError
 from signalflow.monitoring import Instrumentation, NullInstrumentation
 from .data import Dataset, Split, load_dataset, split_dataset
@@ -63,13 +60,7 @@ class SklearnTrainer:
             dataset = load_dataset(dataset_config["source"], dataset_path)
         with observer.stage("data_split"):
             split = split_dataset(dataset, dataset_config["split"], training["seed"])
-        model = Pipeline([
-            ("imputer", SimpleImputer(strategy="median", keep_empty_features=True)),
-            ("scaler", StandardScaler()),
-            ("classifier", LogisticRegression(
-                **training["model"]["parameters"], random_state=training["seed"], solver="lbfgs",
-            )),
-        ])
+        model = build_model(training)
         try:
             with threadpool_limits(limits=1), warnings.catch_warnings():
                 warnings.simplefilter("error", ConvergenceWarning)
@@ -78,9 +69,9 @@ class SklearnTrainer:
                 # Les composants restent ceux du pipeline sauvegardé. Séparer les
                 # deux fit permet leur mesure sans réapprendre ni recopier le dataset.
                 with observer.stage("preprocessing"):
-                    transformed = model[:-1].fit_transform(dataset.X[split.train], dataset.y[split.train])
+                    transformed = preprocess(model, dataset, split)
                 with observer.stage("model_fit"):
-                    model[-1].fit(transformed, dataset.y[split.train])
+                    fit(model, transformed, dataset, split)
                 duration = time.perf_counter() - start
                 metrics = {}
                 with observer.stage("predict_evaluate"):
@@ -110,17 +101,3 @@ class SklearnTrainer:
         path = destination / "model.joblib"
         joblib.dump(result.model, path)
         return path
-
-
-def _evaluate(model: Pipeline, dataset: Dataset, indices: Any, prefix: str) -> dict[str, float]:
-    expected = dataset.y[indices]
-    predicted = model.predict(dataset.X[indices])
-    precision, recall, f1, _ = precision_recall_fscore_support(
-        expected, predicted, average="macro", labels=model.classes_, zero_division=0,
-    )
-    return {
-        f"{prefix}_accuracy": float(accuracy_score(expected, predicted)),
-        f"{prefix}_precision_macro": float(precision),
-        f"{prefix}_recall_macro": float(recall),
-        f"{prefix}_f1_macro": float(f1),
-    }

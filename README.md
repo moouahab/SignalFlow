@@ -273,3 +273,5 @@ API locale anonyme, non prête pour Internet. Voir le
 Les uploads CSV versionnés et leurs contraintes sont décrits dans [docs/datasets.md](docs/datasets.md).
 
 Les jobs durables, leur worker Linux et les procédures de reprise sont décrits dans [docs/jobs.md](docs/jobs.md).
+
+L’orchestration ZenML optionnelle et son runtime isolé sont documentés dans [docs/zenml.md](docs/zenml.md).

@@ -34,5 +34,52 @@ services:
       timeout: 3s
       retries: 12
 
+  api:
+    <<: *common
+    profiles: [jobs]
+    build:
+      context: .
+      dockerfile: web/api/Dockerfile
+      target: local
+    image: signalflow-app:local
+    command: [uvicorn, signalflow_api.app:create_app, --factory, --host, 0.0.0.0, --port, '8000']
+    environment:
+      SIGNALFLOW_DATABASE_URL: postgresql+psycopg://signalflow:${SIGNALFLOW_POSTGRES_PASSWORD:-signalflow-local}@postgres:5432/signalflow_app
+      SIGNALFLOW_DATASET_ROOT: /data/datasets
+    ports: ['127.0.0.1:8001:8000']
+    volumes: [app-datasets:/data/datasets]
+    read_only: true
+    tmpfs: ['/tmp:size=128m,mode=1777']
+    mem_limit: 512m
+    pids_limit: 128
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    <<: *common
+    profiles: [jobs]
+    image: signalflow-app:local
+    build:
+      context: .
+      dockerfile: web/api/Dockerfile
+      target: local
+    command: [signalflow-worker]
+    environment:
+      SIGNALFLOW_DATABASE_URL: postgresql+psycopg://signalflow:${SIGNALFLOW_POSTGRES_PASSWORD:-signalflow-local}@postgres:5432/signalflow_app
+      SIGNALFLOW_DATASET_ROOT: /data/datasets
+      SIGNALFLOW_JOB_ROOT: /data/jobs
+    volumes: [app-datasets:/data/datasets:ro, app-jobs:/data/jobs]
+    read_only: true
+    tmpfs: ['/tmp:size=128m,mode=1777']
+    mem_limit: 3g
+    cpus: 1
+    pids_limit: 128
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
+  app-datasets:
+  app-jobs:
   app-postgres-data:

@@ -14,7 +14,8 @@ from sqlalchemy.pool import StaticPool
 def create_database_engine(url: str) -> Engine:
     """Créer un moteur ; SQLite mémoire reste partageable dans le même processus."""
     if url.startswith("sqlite"):
-        engine = create_engine(url, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        options = {"poolclass": StaticPool} if url in ("sqlite://", "sqlite:///:memory:") else {}
+        engine = create_engine(url, connect_args={"check_same_thread": False}, **options)
         # Le mode de transaction hérité de sqlite3 laisse les SAVEPOINT
         # fonctionner sans BEGIN ; RELEASE pourrait alors échapper au ROLLBACK.
         @event.listens_for(engine, "connect")
